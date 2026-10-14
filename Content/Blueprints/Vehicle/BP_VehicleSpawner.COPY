@@ -1,0 +1,141 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VehicleSpawner"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_VehicleSpawner
+Asset Path: /Game/Blueprints/Vehicle/BP_VehicleSpawner
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Master Vehicle Lifecycle and Spawning Orchestrator for VELOCITY X.
+   Discovers grid spawn points, queries AVELOCITYXGameMode for user's selected
+   car archetype (Supercar, TrackSupercar, Hypercar), instantiates the physics pawn,
+   possesses via AVelocityPlayerController, initializes camera systems, and manages
+   vehicle respawning / reset requests.
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  └── Billboard (BillboardComponent)
+        - Sprite: Texture2D'/Engine/EditorResources/Spawn_Actor'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- SupercarClass (TSubclassOf<ASupercar>, Default=Class'/Script/VELOCITYX.Supercar')
+- TrackSupercarClass (TSubclassOf<ATrackSupercar>, Default=Class'/Script/VELOCITYX.TrackSupercar')
+- HypercarClass (TSubclassOf<AHypercar>, Default=Class'/Script/VELOCITYX.Hypercar')
+- FallbackVehicleClass (TSubclassOf<AVELOCITYXVehicle>, Default=Class'/Script/VELOCITYX.VELOCITYXVehicle')
+- SpawnHeightOffsetZ (Float) = 38.0 cm (Clearance to avoid tires clipping asphalt)
+- bAutoSpawnOnBeginPlay (Boolean) = True
+- TargetSpawnSlotIndex (Integer) = 1 (1 = Pole Position)
+
+--------------------------------------------------------------------------------
+3. INTERNAL VARIABLES:
+--------------------------------------------------------------------------------
+- ActiveVehicleInstance (AActor*)
+- ActiveCarManager (ACarManager*)
+- PlayerControllerRef (APlayerController*)
+
+--------------------------------------------------------------------------------
+4. EVENT DISPATCHERS:
+--------------------------------------------------------------------------------
+- EventDispatcher OnVehicleSpawned(AActor* SpawnedVehicle, int32 SlotIndex)
+
+--------------------------------------------------------------------------------
+5. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+   1. Cache PlayerController:
+      PlayerControllerRef = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+   2. Locate ACarManager in World:
+      ActiveCarManager = ACarManager::GetCarManager(GetWorld());
+   3. If (bAutoSpawnOnBeginPlay):
+      SpawnSelectedVehicle();
+
+Function SpawnSelectedVehicle():
+   // 1. Determine Selected Car Archetype from GameMode
+   AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+   ECarType SelectedType = GM ? GM->GetSelectedCarType() : ECarType::Supercar;
+
+   TSubclassOf<AActor> ClassToSpawn = SupercarClass;
+   Switch (SelectedType):
+      Case ECarType::Supercar:
+         ClassToSpawn = SupercarClass ? SupercarClass : FallbackVehicleClass;
+         Break;
+      Case ECarType::TrackSupercar:
+         ClassToSpawn = TrackSupercarClass ? TrackSupercarClass : FallbackVehicleClass;
+         Break;
+      Case ECarType::Hypercar:
+         ClassToSpawn = HypercarClass ? HypercarClass : FallbackVehicleClass;
+         Break;
+
+   // 2. Find Designated Spawn Point Actor
+   FTransform SpawnTransform = FTransform::Identity;
+   TArray<AActor*> FoundSpawnPoints;
+   UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABP_VehicleSpawnPoint::StaticClass(), FoundSpawnPoints);
+
+   ABP_VehicleSpawnPoint* BestSpawnPoint = nullptr;
+   FOR EACH Actor in FoundSpawnPoints:
+      ABP_VehicleSpawnPoint* SP = Cast<ABP_VehicleSpawnPoint>(Actor);
+      If (SP && SP->GridSlotIndex == TargetSpawnSlotIndex):
+         BestSpawnPoint = SP;
+         Break;
+
+   If (BestSpawnPoint):
+      FVector Loc = BestSpawnPoint->GetActorLocation();
+      Loc.Z += SpawnHeightOffsetZ;
+      SpawnTransform = FTransform(BestSpawnPoint->GetActorRotation(), Loc, FVector::OneVector);
+   Else:
+      // Fallback default starting coordinates: Northbound Lane 2
+      SpawnTransform = FTransform(FRotator(0.0, 0.0, 0.0), FVector(1000.0, 662.5, SpawnHeightOffsetZ), FVector::OneVector);
+
+   // 3. Destroy Existing Vehicle Pawn If Any
+   If (IsValid(ActiveVehicleInstance)):
+      If (PlayerControllerRef && PlayerControllerRef->GetPawn() == ActiveVehicleInstance):
+         PlayerControllerRef->UnPossess();
+      ActiveVehicleInstance->Destroy();
+      ActiveVehicleInstance = nullptr;
+
+   // 4. Spawn Vehicle Actor
+   FActorSpawnParameters SpawnParams;
+   SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+   ActiveVehicleInstance = GetWorld()->SpawnActor<AActor>(ClassToSpawn, SpawnTransform, SpawnParams);
+
+   If (!IsValid(ActiveVehicleInstance)):
+      PrintString("ERROR: Failed to spawn vehicle actor!");
+      Return;
+
+   // 5. Possess Pawn with Player Controller
+   APawn* VehiclePawn = Cast<APawn>(ActiveVehicleInstance);
+   If (VehiclePawn && PlayerControllerRef):
+      PlayerControllerRef->Possess(VehiclePawn);
+
+   // 6. Notify Controller and Level
+   AVelocityPlayerController* VelPC = Cast<AVelocityPlayerController>(PlayerControllerRef);
+   If (VelPC):
+      // Sets internal vehicle pointers, camera boom targets, and input mappings
+      VelPC->OnVehicleSpawned(Cast<AVELOCITYXVehicle>(ActiveVehicleInstance));
+
+   OnVehicleSpawned.Broadcast(ActiveVehicleInstance, TargetSpawnSlotIndex);
+
+Function RespawnVehicleAtLastSafeLocation(FVector SafeLocation, FRotator SafeRotation):
+   If (!IsValid(ActiveVehicleInstance)) Return;
+   FVector TargetLoc = SafeLocation;
+   TargetLoc.Z += SpawnHeightOffsetZ;
+   ActiveVehicleInstance->SetActorLocationAndRotation(TargetLoc, SafeRotation, false, nullptr, ETeleportType::ResetPhysics);
+
+   If (ActiveVehicleInstance->IsA(ABaseCar::StaticClass())):
+      Cast<ABaseCar>(ActiveVehicleInstance)->ResetVehicle();
+   Else If (ActiveVehicleInstance->IsA(AVELOCITYXVehicle::StaticClass())):
+      Cast<AVELOCITYXVehicle>(ActiveVehicleInstance)->ResetVehicle();
+================================================================================
+*/

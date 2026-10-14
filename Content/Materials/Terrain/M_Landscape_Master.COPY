@@ -1,0 +1,42 @@
+Begin Object Class=/Script/Engine.Material Name="M_Landscape_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithLandscape=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Landscape_Master
+Asset Path: /Game/Materials/Terrain/M_Landscape_Master
+Target Use: Rocky terrain, highway cuts, rolling hills along 50km highway corridor
+
+PBR SPECIFICATION & SLOPE BLEND LOGIC:
+--------------------------------------------------------------------------------
+1. LAYER 1: ROAD SHOULDER GRAVEL / EMBANKMENT
+   - Color: Compacted granite crushed rock (0.42, 0.40, 0.38)
+   - Roughness: 0.78
+   - Normal: Coarse gravel
+
+2. LAYER 2: GRASS / FOREST FLOOR (FLAT TERRAIN)
+   - Color: Rich soil & wild grass blend (0.18, 0.26, 0.10)
+   - Roughness: 0.82
+   - Normal: Earth clods & roots
+
+3. LAYER 3: ROCKY CLIFF / BEDROCK (STEEP SLOPES)
+   - Triplanar projection mapped onto vertical slopes.
+   - Slope Angle Mask: Automatically applies rock on slopes > 35 degrees.
+   - Color: Stratified granite/limestone (0.35, 0.33, 0.31)
+   - Roughness: 0.65
+   - Normal: Fractured rock strata
+
+4. PERFORMANCE OPTIMIZATION:
+   - Distance-based texture coordinate mip biasing: Reduces texture bandwidth when driving fast.
+   - Distance blend: Flattens detail normals past 250m to conserve GPU cycles.
+================================================================================
+*/

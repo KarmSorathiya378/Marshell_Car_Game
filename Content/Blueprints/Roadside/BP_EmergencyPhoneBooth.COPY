@@ -1,0 +1,51 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_EmergencyPhoneBooth"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_EmergencyPhoneBooth
+Asset Path: /Game/Blueprints/Roadside/BP_EmergencyPhoneBooth
+Target Parent: AActor
+Description:
+   Highway SOS emergency roadside telephone call box placed along outer shoulders.
+   Features solar power panel, high-visibility safety orange powder coat,
+   and pulsing blue LED strobe beacon.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── BoothHousingMesh (StaticMeshComponent)
+  │     - Mesh: SM_Emergency_Phone_Kiosk (80 x 80 x 220 cm)
+  │     - BaseColor: Safety Orange (#FF6B00)
+  │     - Material: M_PhoneBooth_Orange_PBR
+  │
+  ├── SolarPanelMesh (StaticMeshComponent)
+  │     - Mesh: SM_Solar_Photovoltaic_Mount (60 x 40 x 5 cm)
+  │     - Relative Location: (0.0, 0.0, 240.0)
+  │     - Relative Rotation: Pitch -35.0 deg (Tilted toward south sun)
+  │
+  ├── BlueBeaconLight (PointLightComponent)
+  │     - Relative Location: (0.0, 0.0, 255.0)
+  │     - LightColor: (20, 120, 255) [High-intensity emergency blue]
+  │     - Intensity: 3,500 Lumens
+  │     - AttenuationRadius: 800 cm
+  │
+  └── Audio_SOS_Chirp (AudioComponent)
+        - Sound: SFX_Emergency_Phone_Standby_Pulse
+        - AttenuationSettings: Attenuation_Roadside_ShortRange (400 cm)
+
+--------------------------------------------------------------------------------
+EVENT GRAPH RUNTIME TICK:
+--------------------------------------------------------------------------------
+Event Tick(DeltaTime):
+   BeaconTimer += DeltaTime * 2.0;
+   float StrobeIntensity = (sin(BeaconTimer * 6.28) > 0.7) ? 8000.0f : 100.0f;
+   BlueBeaconLight->SetIntensity(StrobeIntensity);
+================================================================================
+*/

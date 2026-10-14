@@ -1,0 +1,68 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_LogoShimmer"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_LogoShimmer
+Asset Path: /Game/Materials/UI/M_UI_LogoShimmer
+Target Use: Animated Futuristic Title & Logo for BP_MainMenu
+Resolution Target: 1920x1080 UI canvas (Native 1024x256 Logo Banner)
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. TITLE & LOGO ANIMATED DYNAMICS:
+   - Dynamic 45-degree holographic light sweep (specular glint) traversing the "VELOCITY X" branding every 3.5 seconds.
+   - High-contrast metallic chrome text base with cyber-crimson and neon-cyan edge chromatic fringing.
+   - Subtle rhythmic breathing pulse (sub-bass hum breathing between 1.0x and 1.25x emissive boost).
+   - Speed streak particles etched into typography tail.
+
+2. DYNAMIC PARAMETERS:
+   - "SweepSpeed" (Scalar, Default=0.45): Traversal velocity of specular glint band.
+   - "SweepInterval" (Scalar, Default=3.5): Periodic delay between successive glints.
+   - "SweepWidth" (Scalar, Default=0.12): Sharpness/breadth of the holographic glint.
+   - "BaseGlowIntensity" (Scalar, Default=2.2): HDR emissive bloom baseline.
+   - "PulseSpeed" (Scalar, Default=1.8): Frequency of logo breathing animation.
+   - "Color_Core" (LinearColor, Default=(0.95, 0.98, 1.0, 1.0) - Platinum White).
+   - "Color_Accent" (LinearColor, Default=(1.0, 0.15, 0.25, 1.0) - Velocity Neon Red).
+   - "Color_CyanFringe" (LinearColor, Default=(0.0, 0.9, 1.0, 1.0) - High-Speed Cyan).
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Periodic Glint Coordinate Calculation
+   float TimeMod = fmod(View.GameTime * SweepSpeed, SweepInterval);
+   float GlintPos = (TimeMod / SweepInterval) * 2.2 - 0.6; // Moves from -0.6 to 1.6
+
+   // 45-Degree Diagonal Projection
+   float DiagonalCoord = (InUV.x * 0.7) + (InUV.y * 0.3);
+   float GlintDist = abs(DiagonalCoord - GlintPos);
+   float GlintMask = saturate(1.0 - (GlintDist / SweepWidth));
+   GlintMask = pow(GlintMask, 3.0); // Sharp specular peak
+
+   // 2. Rhythmic Breathing Pulse
+   float Pulse = sin(View.GameTime * PulseSpeed) * 0.15 + 1.0;
+
+   // 3. Chromatic Edge Fringing
+   float FringeDist = (InUV.x - 0.5);
+   float3 FringeColor = lerp(Color_CyanFringe.rgb, Color_Accent.rgb, saturate(FringeDist + 0.5));
+
+   // 4. Logo Typography Mask (Sampled from Texture or Alpha Channel)
+   float LogoAlpha = InAlpha; // Alpha channel from font or SVG sprite
+
+   // 5. Blended Specular Core & Emissive Bloom
+   float3 CoreColor = Color_Core.rgb * (1.0 + GlintMask * 3.5);
+   float3 FinalColor = (CoreColor + (FringeColor * 0.4) + (Color_Accent.rgb * GlintMask * 2.0)) * BaseGlowIntensity * Pulse;
+
+   Material.EmissiveColor = FinalColor * LogoAlpha;
+   Material.Opacity = LogoAlpha;
+================================================================================
+*/

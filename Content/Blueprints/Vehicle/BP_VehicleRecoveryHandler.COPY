@@ -1,0 +1,130 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VehicleRecoveryHandler"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_VehicleRecoveryHandler
+Asset Path: /Game/Blueprints/Vehicle/BP_VehicleRecoveryHandler
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Active unstuck and crash recovery watchdog actor for VELOCITY X.
+   Continuously monitors vehicle orientation (inverted roll/pitch > 70 deg)
+   and immobility (stuck against barriers while applying throttle). Automatically
+   triggers graceful recovery respawn after timeout, or responds immediately
+   to player manual unstuck reset input ('R' key / Controller Y button).
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  └── Billboard (BillboardComponent)
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- InversionThresholdAngle (Float) = 70.0 deg (Degrees from upright Z axis)
+- InversionTimeoutSeconds (Float) = 2.5 s (Wait time before triggering auto-recovery)
+- StuckThrottleThreshold (Float) = 0.5 (Throttle input considered "trying to drive")
+- StuckSpeedThresholdKPH (Float) = 4.0 km/h (Speed below which vehicle is considered immobile)
+- StuckTimeoutSeconds (Float) = 3.5 s (Time immobile while applying throttle before unstuck)
+- RecoverySpawnHeightZ (Float) = 42.0 cm
+
+--------------------------------------------------------------------------------
+3. INTERNAL TIMERS:
+--------------------------------------------------------------------------------
+- InvertedTimer (Float) = 0.0 s
+- StuckTimer (Float) = 0.0 s
+- TargetVehicle (AActor*)
+- TargetPlayerController (AVelocityPlayerController*)
+
+--------------------------------------------------------------------------------
+4. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+   1. Cache PlayerController:
+      TargetPlayerController = Cast<AVelocityPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+Event Tick (DeltaTime):
+   1. Resolve TargetVehicle:
+      If (!IsValid(TargetVehicle)):
+         TargetVehicle = TargetPlayerController ? TargetPlayerController->GetPawn() : nullptr;
+         If (!IsValid(TargetVehicle)) Return;
+
+   FVector CarUpVector = TargetVehicle->GetActorUpVector();
+   FVector WorldUp = FVector(0.0f, 0.0f, 1.0f);
+   float AngleFromUp = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(CarUpVector, WorldUp)));
+
+   // 1. INVERSION / FLIP DETECTION
+   If (AngleFromUp > InversionThresholdAngle):
+      InvertedTimer += DeltaTime;
+      If (InvertedTimer >= InversionTimeoutSeconds):
+         PrintString("VELOCITY X: Auto-Recovering Flipped Vehicle...");
+         TriggerUnstuckRecovery();
+         InvertedTimer = 0.0f;
+   Else:
+      InvertedTimer = 0.0f;
+
+   // 2. STUCK / PINNED DETECTION
+   float Throttle = 0.0f;
+   float SpeedKPH = 0.0f;
+
+   If (TargetVehicle->IsA(ABaseCar::StaticClass())):
+      ABaseCar* Car = Cast<ABaseCar>(TargetVehicle);
+      Throttle = Car->GetTelemetry().ThrottleInput;
+      SpeedKPH = Car->GetSpeedKPH();
+   Else If (TargetVehicle->IsA(AVELOCITYXVehicle::StaticClass())):
+      AVELOCITYXVehicle* Car = Cast<AVELOCITYXVehicle>(TargetVehicle);
+      Throttle = Car->CurrentThrottle;
+      SpeedKPH = Car->GetSpeed() * 0.036f;
+
+   If (Throttle > StuckThrottleThreshold && SpeedKPH < StuckSpeedThresholdKPH):
+      StuckTimer += DeltaTime;
+      If (StuckTimer >= StuckTimeoutSeconds):
+         PrintString("VELOCITY X: Auto-Recovering Pinned Vehicle...");
+         TriggerUnstuckRecovery();
+         StuckTimer = 0.0f;
+   Else:
+      StuckTimer = 0.0f;
+
+Function TriggerUnstuckRecovery():
+   If (!IsValid(TargetVehicle)) Return;
+
+   FVector CurrentLoc = TargetVehicle->GetActorLocation();
+
+   // Query Highway Recovery Manager in level
+   TArray<AActor*> FoundManagers;
+   UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABP_HighwayRecoveryManager::StaticClass(), FoundManagers);
+
+   FTransform RecoveryTransform;
+   int32 LaneIdx;
+   bool bSuccess = false;
+
+   If (FoundManagers.Num() > 0):
+      ABP_HighwayRecoveryManager* RecovMgr = Cast<ABP_HighwayRecoveryManager>(FoundManagers[0]);
+      RecovMgr->GetNearestHighwayRecoveryTransform(CurrentLoc, true, RecoveryTransform, LaneIdx, bSuccess);
+
+   If (!bSuccess):
+      // Fallback calculation: nearest lane to crash location
+      float NorthLanes[3] = { 287.5f, 662.5f, 1037.5f };
+      float SafeY = NorthLanes[1];
+      RecoveryTransform = FTransform(FRotator(0, 0, 0), FVector(CurrentLoc.X, SafeY, RecoverySpawnHeightZ), FVector::OneVector);
+
+   // Teleport & Physics Reset
+   TargetVehicle->SetActorTransform(RecoveryTransform, false, nullptr, ETeleportType::ResetPhysics);
+
+   If (TargetVehicle->IsA(ABaseCar::StaticClass())):
+      Cast<ABaseCar>(TargetVehicle)->ResetVehicle();
+   Else If (TargetVehicle->IsA(AVELOCITYXVehicle::StaticClass())):
+      Cast<AVELOCITYXVehicle>(TargetVehicle)->ResetVehicle();
+
+   // Spawn Unstuck Chime & FX
+   UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundCue'/Game/Audio/Vehicles/SC_Vehicle_ResetChime', RecoveryTransform.GetLocation());
+================================================================================
+*/

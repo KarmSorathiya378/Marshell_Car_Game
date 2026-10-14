@@ -1,0 +1,35 @@
+# Visual Studio / IDE
+.vs/
+**/.vs/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+
+# Unreal Engine folders & build artifacts
+Binaries/
+**/Binaries/
+DerivedDataCache/
+**/DerivedDataCache/
+Intermediate/
+**/Intermediate/
+Saved/
+**/Saved/
+Logs/
+**/Logs/
+
+# Crash dumps and logs
+*.log
+*.dmp
+*.crash
+
+# Windows / OS junk
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

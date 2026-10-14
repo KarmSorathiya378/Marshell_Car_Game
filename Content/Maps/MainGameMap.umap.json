@@ -1,0 +1,272 @@
+{
+  "AssetType": "World",
+  "Package": "/Game/Maps/MainGameMap",
+  "WorldSettings": {
+    "DefaultGameMode": "/Game/Blueprints/GameMode/BP_VELOCITYXGameMode.BP_VELOCITYXGameMode_C",
+    "FallbackGameMode": "/Script/VELOCITYX.VELOCITYXGameMode",
+    "LevelScriptActor": "/Game/Maps/BP_MainGameMapLevel.BP_MainGameMapLevel_C",
+    "bEnableWorldPartition": true,
+    "WorldPartitionGrid": {
+      "CellSize": 25600.0,
+      "LoadingRange": 150000.0,
+      "ServerStreamingOutMode": "Disabled"
+    },
+    "GlobalGravityZ": -980.0
+  },
+  "LevelBounds": {
+    "Origin": [375000.0, 0.0, 500.0],
+    "BoxExtent": [400000.0, 10000.0, 3000.0]
+  },
+  "Actors": [
+    {
+      "Name": "AtmosphericLighting_Main",
+      "Class": "/Game/Blueprints/Environment/BP_AtmosphericLightingSetup",
+      "Transform": {
+        "Location": [0.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "SunIntensity": 75000.0,
+        "SunTemperature": 5800.0,
+        "SunPitch": -24.0,
+        "SunYaw": 140.0,
+        "AtmosphereFogDensity": 0.015,
+        "SpeedVignetteIntensity": 0.45
+      }
+    },
+    {
+      "Name": "HighwayGenerator_MainCorridor",
+      "Class": "/Game/Blueprints/Highway/BP_HighwayGenerator",
+      "Transform": {
+        "Location": [0.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "TotalHighwayLength": 750000.0,
+        "LanesPerDirection": 3,
+        "LaneWidth": 375.0,
+        "MedianWidth": 200.0,
+        "LeftShoulderWidth": 150.0,
+        "RightShoulderWidth": 300.0,
+        "PhysicalMaterialAsphalt": "/Game/Materials/Physical/PM_Asphalt"
+      }
+    },
+    {
+      "Name": "StartGrid_8Slot",
+      "Class": "/Game/Blueprints/Highway/BP_HighwayStartGrid",
+      "Transform": {
+        "Location": [0.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "NumGridSlots": 8,
+        "LongitudinalSpacing": 1400.0,
+        "StartLineX": 1000.0,
+        "GridSpawnZ": 38.0
+      }
+    },
+    {
+      "Name": "VehicleSpawnPoint_PolePosition",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleSpawnPoint",
+      "Transform": {
+        "Location": [1000.0, 662.5, 38.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "GridSlotIndex": 1,
+        "LaneNumber": 2,
+        "bIsPolePosition": true
+      },
+      "Tags": ["PlayerStart_PolePosition", "GridSlot_1", "Lane_2"]
+    },
+    {
+      "Name": "VehicleSpawnPoint_Slot2",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleSpawnPoint",
+      "Transform": {
+        "Location": [300.0, 287.5, 38.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "GridSlotIndex": 2,
+        "LaneNumber": 1,
+        "bIsPolePosition": false
+      },
+      "Tags": ["GridSlot_2", "Lane_1"]
+    },
+    {
+      "Name": "VehicleSpawnPoint_Slot3",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleSpawnPoint",
+      "Transform": {
+        "Location": [-400.0, 662.5, 38.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "GridSlotIndex": 3,
+        "LaneNumber": 2,
+        "bIsPolePosition": false
+      },
+      "Tags": ["GridSlot_3", "Lane_2"]
+    },
+    {
+      "Name": "VehicleSpawnPoint_Slot4",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleSpawnPoint",
+      "Transform": {
+        "Location": [-1100.0, 287.5, 38.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "GridSlotIndex": 4,
+        "LaneNumber": 1,
+        "bIsPolePosition": false
+      },
+      "Tags": ["GridSlot_4", "Lane_1"]
+    },
+    {
+      "Name": "MasterVehicleSpawner",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleSpawner",
+      "Transform": {
+        "Location": [1000.0, 662.5, 38.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "TargetSpawnSlotIndex": 1,
+        "bAutoSpawnOnBeginPlay": true,
+        "SpawnHeightOffsetZ": 38.0
+      }
+    },
+    {
+      "Name": "StartLineTrigger_Main",
+      "Class": "/Game/Blueprints/Triggers/BP_StartLineTrigger",
+      "Transform": {
+        "Location": [1000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "CountdownDuration": 5.0,
+        "bAutoStartCountdownOnBeginPlay": true
+      }
+    },
+    {
+      "Name": "Checkpoint_01_Sector1",
+      "Class": "/Game/Blueprints/Triggers/BP_CheckpointTrigger",
+      "Transform": {
+        "Location": [150000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "CheckpointIndex": 1,
+        "CheckpointName": "SECTOR 1 SPLIT // 1.5 KM",
+        "TrackDistanceKm": 1.5,
+        "TargetSectorTime": 22.0
+      }
+    },
+    {
+      "Name": "Checkpoint_02_Sector2",
+      "Class": "/Game/Blueprints/Triggers/BP_CheckpointTrigger",
+      "Transform": {
+        "Location": [300000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "CheckpointIndex": 2,
+        "CheckpointName": "SECTOR 2 SPLIT // 3.0 KM",
+        "TrackDistanceKm": 3.0,
+        "TargetSectorTime": 44.0
+      }
+    },
+    {
+      "Name": "Checkpoint_03_Sector3",
+      "Class": "/Game/Blueprints/Triggers/BP_CheckpointTrigger",
+      "Transform": {
+        "Location": [450000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "CheckpointIndex": 3,
+        "CheckpointName": "SECTOR 3 SPLIT // 4.5 KM",
+        "TrackDistanceKm": 4.5,
+        "TargetSectorTime": 66.0
+      }
+    },
+    {
+      "Name": "Checkpoint_04_Sector4",
+      "Class": "/Game/Blueprints/Triggers/BP_CheckpointTrigger",
+      "Transform": {
+        "Location": [600000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "CheckpointIndex": 4,
+        "CheckpointName": "SECTOR 4 SPLIT // 6.0 KM",
+        "TrackDistanceKm": 6.0,
+        "TargetSectorTime": 88.0
+      }
+    },
+    {
+      "Name": "FinishLineTrigger_Main",
+      "Class": "/Game/Blueprints/Triggers/BP_FinishLineTrigger",
+      "Transform": {
+        "Location": [750000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "FinishTrackDistanceKm": 7.5
+      }
+    },
+    {
+      "Name": "RecoveryZone_Corridor",
+      "Class": "/Game/Blueprints/Triggers/BP_RecoveryZone",
+      "Transform": {
+        "Location": [375000.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [7.5, 1.0, 1.0]
+      },
+      "Properties": {
+        "RecoveryElevationZ": 45.0,
+        "RecoveryDelaySeconds": 1.2
+      }
+    },
+    {
+      "Name": "VehicleRecoveryHandler_Watchdog",
+      "Class": "/Game/Blueprints/Vehicle/BP_VehicleRecoveryHandler",
+      "Transform": {
+        "Location": [0.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "InversionThresholdAngle": 70.0,
+        "InversionTimeoutSeconds": 2.5,
+        "StuckTimeoutSeconds": 3.5
+      }
+    },
+    {
+      "Name": "RoadsideInfrastructure_Spawner",
+      "Class": "/Game/Blueprints/Roadside/BP_RoadsideSpawner",
+      "Transform": {
+        "Location": [0.0, 0.0, 0.0],
+        "Rotation": [0.0, 0.0, 0.0],
+        "Scale": [1.0, 1.0, 1.0]
+      },
+      "Properties": {
+        "TotalHighwayLength": 750000.0,
+        "StreetlightSpacing": 5000.0,
+        "GantrySpacing": 150000.0
+      }
+    }
+  ]
+}

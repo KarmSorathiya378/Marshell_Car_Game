@@ -1,0 +1,196 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_MainMenu"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/VELOCITYX.VELOCITYXMainMenuWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_MainMenu
+Asset Path: /Game/Blueprints/UI/BP_MainMenu
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Base Class: UVELOCITYXMainMenuWidget (derives from UUserWidget)
+Author: UI Designer (Nimbus)
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |-- [BackgroundShowcase] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: RenderTargetTexture / Dynamic 3D Car Showcase Camera Feed
+  |     Z-Order: 0
+  |
+  |-- [ParticleEffectOverlay] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: Dynamic Particle / Embers / Speed Dust Material
+  |     BlendMode: Additive | Opacity: 0.65
+  |     Z-Order: 1
+  |
+  |-- [BackdropVignette] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Color: LinearColor(0.01, 0.02, 0.04, 0.55) | Gradient Edge Vignette
+  |     Z-Order: 2
+  |
+  |-- [TopHeaderBar] (HorizontalBox)
+  |     Anchors: Top-Stretch (Min: 0,0, Max: 1,0) | Alignment: (0, 0)
+  |     Offsets: Left: 80, Top: 40, Right: 80, Bottom: 80
+  |     Z-Order: 10
+  |     |-- [VersionTag] (TextBlock)
+  |     |     Text: "VELOCITY X // BUILD 1.0.0 (RELEASE SPEC)"
+  |     |     Font: Orbitron-Medium, Size 13, Color: (0.4, 0.55, 0.7, 0.8)
+  |     |-- [Spacer_Header] (Spacer, Size: 1.0 Fill)
+  |     |-- [ProfileStatsPanel] (HorizontalBox)
+  |           |-- [Txt_CompletedRaces] (TextBlock)
+  |           |     Text: "RACES: 0" | Font: Rajdhani-Bold, Size 15, Color: (0.0, 0.85, 1.0, 1.0)
+  |           |-- [HeaderSep1] (TextBlock, Text: " | ")
+  |           |-- [Txt_PlayTime] (TextBlock)
+  |           |     Text: "TIME: 00h 00m" | Font: Rajdhani-Bold, Size 15, Color: (0.9, 0.9, 0.9, 0.8)
+  |           |-- [HeaderSep2] (TextBlock, Text: " | ")
+  |           |-- [Txt_BestOverall] (TextBlock)
+  |                 Text: "RECORD: --:--.---" | Font: Rajdhani-Bold, Size 15, Color: (1.0, 0.8, 0.1, 1.0)
+  |
+  |-- [TitleContainer] (VerticalBox)
+  |     Anchors: Left-Top (Min: 0,0, Max: 0,0) | Alignment: (0, 0)
+  |     Position: X: 120, Y: 180 | Size: X: 700, Y: 220
+  |     Z-Order: 10
+  |     |-- [LogoImage] (Image)
+  |     |     Size: 480 x 110 | Brush: Material'/Game/Materials/UI/M_UI_LogoShimmer'
+  |     |-- [TitleText] (TextBlock)
+  |     |     Text: "VELOCITY X"
+  |     |     Font: Syncopate-Bold / Italic, Size 72, Letter-Spacing: 120
+  |     |     Color: LinearColor(1.0, 1.0, 1.0, 1.0)
+  |     |     ShadowOffset: (3, 3), ShadowColor: (1.0, 0.05, 0.15, 0.8)
+  |     |-- [SubtitleText] (TextBlock)
+  |           Text: "HIGHWAY PURSUIT & HYPERCAR DYNAMICS"
+  |           Font: Rajdhani-SemiBold, Size 18, Letter-Spacing: 250
+  |           Color: LinearColor(0.0, 0.85, 1.0, 0.9)
+  |
+  |-- [MenuButtonsBox] (VerticalBox)
+  |     Anchors: Left-Center (Min: 0,0.5, Max: 0,0.5) | Alignment: (0, 0.5)
+  |     Position: X: 120, Y: 140 | Size: X: 420, Y: 380
+  |     Z-Order: 10
+  |     |-- [PlayButton] (Button) -> Bound to UVELOCITYXMainMenuWidget::PlayButton
+  |     |     Size: 400 x 64 | Margin: Bottom 16
+  |     |     Style: Normal (SlateBrush Navy/Black 0.8 alpha, Cyan Border 2px)
+  |     |            Hovered (SlateBrush Velocity Crimson, Glow Border 3px)
+  |     |            Pressed (SlateBrush Pure White, Text Black)
+  |     |     Child: [Txt_Play] (TextBlock, Text: "01 // START RACE", Font: Rajdhani-Bold, Size 24)
+  |     |
+  |     |-- [CarSelectButton] (Button)
+  |     |     Size: 400 x 64 | Margin: Bottom 16
+  |     |     Child: [Txt_CarSelect] (TextBlock, Text: "02 // SELECT VEHICLE", Font: Rajdhani-Bold, Size 24)
+  |     |
+  |     |-- [SettingsButton] (Button) -> Bound to UVELOCITYXMainMenuWidget::SettingsButton
+  |     |     Size: 400 x 64 | Margin: Bottom 16
+  |     |     Child: [Txt_Settings] (TextBlock, Text: "03 // SETTINGS", Font: Rajdhani-Bold, Size 24)
+  |     |
+  |     |-- [QuitButton] (Button) -> Bound to UVELOCITYXMainMenuWidget::QuitButton
+  |           Size: 400 x 64 | Margin: Bottom 16
+  |           Child: [Txt_Exit] (TextBlock, Text: "04 // EXIT GAME", Font: Rajdhani-Bold, Size 24)
+  |
+  |-- [FooterControlsHint] (HorizontalBox)
+  |     Anchors: Bottom-Left (Min: 0,1, Max: 0,1) | Alignment: (0, 1)
+  |     Position: X: 120, Y: -40 | Size: X: 800, Y: 40
+  |     Z-Order: 10
+  |     |-- [Hint_Select] (TextBlock, Text: "[ENTER / LMB] SELECT    [ESC] BACK    [W/S] NAVIGATE")
+  |           Font: Rajdhani-Medium, Size 14, Color: (0.5, 0.6, 0.7, 0.6)
+  |
+  |-- [ScreenFadeOverlay] (Border)
+        Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+        Background Color: LinearColor(0,0,0,1)
+        Visibility: HitTestInvisible
+        Z-Order: 100
+
+--------------------------------------------------------------------------------
+2. ANIMATION TIMELINE REGISTRY:
+--------------------------------------------------------------------------------
+A. [Anim_FadeIn] (Duration: 0.6s):
+   - Track: ScreenFadeOverlay.RenderOpacity (Key 0.0s: 1.0 -> Key 0.6s: 0.0)
+   - Track: TitleContainer.RenderTranslation (Key 0.0s: (-60, 0) -> Key 0.6s: (0, 0), Cubic EaseOut)
+   - Track: MenuButtonsBox.RenderOpacity (Key 0.0s: 0.0 -> Key 0.5s: 1.0)
+
+B. [Anim_FadeOut] (Duration: 0.4s):
+   - Track: ScreenFadeOverlay.RenderOpacity (Key 0.0s: 0.0 -> Key 0.4s: 1.0)
+   - Track: MenuButtonsBox.RenderTranslation (Key 0.0s: (0, 0) -> Key 0.4s: (-40, 0))
+
+C. [Anim_LogoPulse] (Duration: 2.0s, Infinite Loop):
+   - Track: LogoImage.RenderScale (Key 0.0s: (1.0, 1.0) -> Key 1.0s: (1.03, 1.03) -> Key 2.0s: (1.0, 1.0))
+   - Track: SubtitleText.RenderOpacity (Key 0.0s: 0.75 -> Key 1.0s: 1.0 -> Key 2.0s: 0.75)
+
+D. [Anim_ButtonHover] (Duration: 0.15s per button):
+   - Track: TargetButton.RenderTranslation (Key 0.0s: (0, 0) -> Key 0.15s: (16.0, 0.0))
+   - Track: TextBlock.ColorAndOpacity (Key 0.0s: Light Gray -> Key 0.15s: Velocity Crimson)
+
+--------------------------------------------------------------------------------
+3. SOUND BINDINGS:
+--------------------------------------------------------------------------------
+   - SFX_Hover: SoundCue'/Game/Audio/UI/SC_UI_Hover'
+   - SFX_Click: SoundCue'/Game/Audio/UI/SC_UI_Click'
+   - SFX_Transition: SoundCue'/Game/Audio/UI/SC_UI_Transition'
+
+--------------------------------------------------------------------------------
+4. C++ DELEGATES & BLUEPRINT EVENT GRAPH:
+--------------------------------------------------------------------------------
+
+C++ Base Class Bindings:
+   - OnPlayButtonClickedDelegate (Multicast Delegate on UVELOCITYXMainMenuWidget)
+   - OnSettingsButtonClickedDelegate (Multicast Delegate on UVELOCITYXMainMenuWidget)
+   - OnQuitButtonClickedDelegate (Multicast Delegate on UVELOCITYXMainMenuWidget)
+   - OnCreditsButtonClickedDelegate (Multicast Delegate on UVELOCITYXMainMenuWidget)
+
+GameMode Bindings:
+   - In AVELOCITYXGameMode:
+     Delegates: OnGameStateChanged (EGameState), OnCarSelected (ECarType)
+     Functions: SetGameState(NewState), SelectCar(CarType), GetSelectedCarType()
+
+Event NativeConstruct:
+   1. Super::NativeConstruct() (Auto-binds PlayButton, SettingsButton, QuitButton, CreditsButton)
+   2. Bind to OnPlayButtonClickedDelegate -> HandlePlayClicked
+   3. Bind to OnSettingsButtonClickedDelegate -> HandleSettingsClicked
+   4. Bind to OnQuitButtonClickedDelegate -> HandleQuitClicked
+   5. Bind to GameMode::OnGameStateChanged delegate
+   6. Play Animation (Anim_FadeIn)
+   7. Play Animation (Anim_LogoPulse, NumLoops=0)
+   8. Ingest GameInstance Stats:
+      - Get GameInstance -> Cast to UVELOCITYXGameInstance
+      - If Valid:
+          * CompletedRaces -> Set Text (Txt_CompletedRaces)
+          * TotalPlayTime -> Format "HHh MMm" -> Set Text (Txt_PlayTime)
+          * BestLapTimes[0] -> Format lap -> Set Text (Txt_BestOverall)
+
+HandlePlayClicked:
+   1. Play Sound 2D (SFX_Click)
+   2. Play Sound 2D (SFX_Transition)
+   3. Play Animation (Anim_FadeOut)
+   4. Set Timer by Event (Delay = 0.4s):
+      - Get GameMode -> Cast to AVELOCITYXGameMode
+      - Call SetGameState(EGameState::Racing)
+      - Open Level "HighwayCorridor_Map"
+
+On Clicked (CarSelectButton):
+   1. Play Sound 2D (SFX_Click)
+   2. Play Animation (Anim_FadeOut)
+   3. Set Timer by Event (Delay = 0.35s):
+      - Get GameMode -> Cast to AVELOCITYXGameMode
+      - Call SetGameState(EGameState::CarSelect)
+      - Create Widget (BP_CarSelection) -> Add to Viewport
+      - Remove from Parent (Self)
+
+HandleSettingsClicked:
+   1. Play Sound 2D (SFX_Click)
+   2. Create Widget (BP_Settings) -> Add to Viewport (Z-Order = 20)
+
+HandleQuitClicked:
+   1. Play Sound 2D (SFX_Click)
+   2. Play Animation (Anim_FadeOut)
+   3. Set Timer by Event (Delay = 0.35s):
+      - Quit Game (GetPlayerController(0), QuitPreference=Quit)
+================================================================================
+*/

@@ -1,0 +1,48 @@
+Begin Object Class=/Script/Engine.Material Name="M_Foliage_Leaves_TwoSided_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Masked
+   ShadingModel=MSM_TwoSidedFoliage
+   TwoSided=True
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Foliage_Leaves_TwoSided_Master
+Asset Path: /Game/Materials/Vegetation/M_Foliage_Leaves_TwoSided_Master
+Target Use: Deciduous & Conifer tree canopies, highway roadside bushes
+
+PBR & SUBSURFACE SPECIFICATION:
+--------------------------------------------------------------------------------
+1. BASE COLOR & VARIATION:
+   - Param "Leaf_Albedo_Tint" (LinearColor, Default=(0.14, 0.28, 0.08, 1.0)):
+     Realistic chlorophyll green (sRGB reflectance ~22%).
+   - Param "PerInstanceHueVariance" (Scalar, Default=0.08):
+     Uses 'PerInstanceRandom' expression to modulate hue and value across individual
+     trees in the 50km corridor to eliminate unnatural repetition.
+   - Param "AutumnShift" (Scalar, Default=0.0, Range [0.0 - 1.0]):
+     Shifts canopy toward golden oak / amber tones.
+
+2. SUBSURFACE SCATTERING (Two-Sided Foliage):
+   - Param "SubsurfaceColor" (LinearColor, Default=(0.28, 0.45, 0.09, 1.0)):
+     Translucent backlit leaf glow when sun is behind foliage.
+   - Param "SubsurfaceAmount" (Scalar, Default=0.75):
+     Scale factor for light transmission through thin leaves.
+
+3. ROUGHNESS & SPECULAR:
+   - Param "Roughness_Top" (Scalar, Default=0.35): Waxy cuticle layer.
+   - Param "Roughness_Bottom" (Scalar, Default=0.65): Diffuse underside.
+   - Param "Specular" (Scalar, Default=0.5): Dielectric leaf surface.
+
+4. WIND ANIMATION & VERTEX DISPLACEMENT:
+   - Evaluates MF_WindAnimation:
+     * Trunk and primary branch sway
+     * High-frequency leaf flutter (frequency 4.5 Hz)
+     * Edge flutter amplitude: 8.0 cm
+================================================================================
+*/

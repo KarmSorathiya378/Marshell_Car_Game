@@ -1,0 +1,28 @@
+Begin Object Class=/Script/PhysicsCore.PhysicalMaterial Name="PM_Shoulder_Gravel"
+   Friction=0.480000
+   FrictionCombineMode=Min
+   bOverrideFrictionCombineMode=True
+   Restitution=0.180000
+   RestitutionCombineMode=Average
+   bOverrideRestitutionCombineMode=True
+   Density=1.600000
+   RaiseMassToPower=1.000000
+   DestructibleDamageThresholdScale=1.000000
+   SurfaceType=SurfaceType2
+End Object
+
+/*
+================================================================================
+VELOCITY X - Physical Material: PM_Shoulder_Gravel
+Asset Path: /Game/Materials/Physics/PM_Shoulder_Gravel
+Target: Highway Shoulders, Run-off Gravel Traps, Unpaved Roadside Verges
+
+PROPERTIES & TIRE DYNAMICS:
+--------------------------------------------------------------------------------
+- Friction: 0.48 (Significantly reduced traction; induces oversteer/drift upon run-off)
+- Friction Combine Mode: Min
+- Restitution: 0.18 (Loose gravel pebble damping)
+- Surface Type: SurfaceType2 (SurfaceType_Gravel)
+  * Triggers: Dust rooster-tail VFX, pebble chatter audio, steering haptic rumble
+================================================================================
+*/

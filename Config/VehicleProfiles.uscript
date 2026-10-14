@@ -1,0 +1,35 @@
+// VELOCITY X - Vehicle Profiles Definition Script (.uscript)
+// Defines vehicle archetype parameters, engine curves, and gearbox ratios
+
+[VehicleArchetype.Supercar]
+ModelName="Apex GT Supercar"
+MaxSpeedMPH=208.0
+Horsepower=670.0
+WeightKg=1420.0
+AeroDownforce=1.2
+BrakeTorque=4500.0
+GearCount=7
+RedlineRPM=8200
+
+[VehicleArchetype.TrackSupercar]
+ModelName="Vortex R Track Spec"
+MaxSpeedMPH=215.0
+Horsepower=780.0
+WeightKg=1240.0
+AeroDownforce=2.4
+BrakeTorque=6200.0
+GearCount=6
+RedlineRPM=9200
+DRSEnabled=true
+
+[VehicleArchetype.Hypercar]
+ModelName="Phantom X Hypercar"
+MaxSpeedMPH=285.0
+Horsepower=1600.0
+WeightKg=1580.0
+AeroDownforce=1.8
+BrakeTorque=6800.0
+GearCount=8
+RedlineRPM=9800
+HybridBoostTorqueMultiplier=1.35
+BoostDurationSeconds=4.0

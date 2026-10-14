@@ -1,0 +1,255 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_CarSelection"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/UMG.UserWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_CarSelection
+Asset Path: /Game/Blueprints/UI/BP_CarSelection
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Integration: AVELOCITYXGameMode, ABaseCar, ACarManager
+Author: UI Designer (Nimbus)
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |-- [TurntableViewport] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: RenderTargetTexture / Dynamic 3D Car Turntable Camera
+  |     Z-Order: 0
+  |
+  |-- [GarageLightingVignette] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Color: LinearColor(0.02, 0.03, 0.06, 0.6) | Radial Darkening
+  |     Z-Order: 1
+  |
+  |-- [HeaderBar] (HorizontalBox)
+  |     Anchors: Top-Stretch (Min: 0,0, Max: 1,0) | Alignment: (0, 0)
+  |     Offsets: Left: 80, Top: 36, Right: 80, Bottom: 80
+  |     Z-Order: 10
+  |     |-- [Btn_Back] (Button)
+  |     |     Size: 140 x 48
+  |     |     Child: [Txt_Back] (TextBlock, Text: "< BACK", Font: Rajdhani-Bold, Size 20)
+  |     |-- [Spacer_Header] (Spacer, Size: 1.0 Fill)
+  |     |-- [HeaderTitleBox] (VerticalBox)
+  |           |-- [Txt_HeaderMain] (TextBlock, Text: "VEHICLE SELECT", Font: Syncopate-Bold, Size 28)
+  |           |-- [Txt_HeaderSub] (TextBlock, Text: "CHOOSE YOUR MACHINE // 3 PERFORMANCE PROFILES", Font: Rajdhani-SemiBold, Size 14, Color: Cyan)
+  |
+  |-- [VehicleCarouselCards] (HorizontalBox)
+  |     Anchors: Bottom-Center (Min: 0.5,1, Max: 0.5,1) | Alignment: (0.5, 1)
+  |     Position: X: 0, Y: -120 | Size: X: 1600, Y: 360
+  |     Z-Order: 10
+  |     |
+  |     |-- [Card_Supercar] (Overlay) -> [Slot 0: ECarType::Supercar]
+  |     |     Size: 480 x 340 | Margin: (15, 0, 15, 0)
+  |     |     |-- [CardBorder_Supercar] (Image, Brush: Material'/Game/Materials/UI/M_UI_CarCardHighlight')
+  |     |     |-- [CardButton_Supercar] (Button, Style: Invisible/Transparent)
+  |     |     |-- [CardContent_Supercar] (VerticalBox, Padding: 20)
+  |     |           |-- [Badge_Supercar] (TextBlock, Text: "BALANCED PERFORMANCE", Font: Rajdhani-Bold, Size 12, Color: Cyan)
+  |     |           |-- [Name_Supercar] (TextBlock, Text: "APEX GT-1", Font: Syncopate-Bold, Size 26)
+  |     |           |-- [Tagline_Supercar] (TextBlock, Text: "500 HP // RWD GT CLASS", Font: Rajdhani-Medium, Size 14, Color: Gray)
+  |     |           |-- [Spacer_SC] (Spacer, Size: 1.0 Fill)
+  |     |           |-- [BestLap_Supercar] (TextBlock, Text: "RECORD: --:--.---", Font: Rajdhani-Bold, Size 14, Color: Gold)
+  |     |           |-- [Status_Supercar] (TextBlock, Text: "[ SELECTED ]", Font: Rajdhani-Bold, Size 16, Color: Neon Green)
+  |     |
+  |     |-- [Card_TrackSupercar] (Overlay) -> [Slot 1: ECarType::TrackSupercar]
+  |     |     Size: 480 x 340 | Margin: (15, 0, 15, 0)
+  |     |     |-- [CardBorder_TrackSupercar] (Image, Brush: Material'/Game/Materials/UI/M_UI_CarCardHighlight')
+  |     |     |-- [CardButton_TrackSupercar] (Button, Style: Invisible/Transparent)
+  |     |     |-- [CardContent_TrackSupercar] (VerticalBox, Padding: 20)
+  |     |           |-- [Badge_TrackSupercar] (TextBlock, Text: "ACTIVE AERO & DRS", Font: Rajdhani-Bold, Size 12, Color: Cyan)
+  |     |           |-- [Name_TrackSupercar] (TextBlock, Text: "VALKYRIE RS", Font: Syncopate-Bold, Size 26)
+  |     |           |-- [Tagline_TrackSupercar] (TextBlock, Text: "720 HP // TRACK SUPERCAR", Font: Rajdhani-Medium, Size 14, Color: Gray)
+  |     |           |-- [Spacer_TS] (Spacer, Size: 1.0 Fill)
+  |     |           |-- [BestLap_TrackSupercar] (TextBlock, Text: "RECORD: --:--.---", Font: Rajdhani-Bold, Size 14, Color: Gold)
+  |     |           |-- [Status_TrackSupercar] (TextBlock, Text: "SELECT", Font: Rajdhani-Bold, Size 16, Color: Gray)
+  |     |
+  |     |-- [Card_Hypercar] (Overlay) -> [Slot 2: ECarType::Hypercar]
+  |           Size: 480 x 340 | Margin: (15, 0, 15, 0)
+  |           |-- [CardBorder_Hypercar] (Image, Brush: Material'/Game/Materials/UI/M_UI_CarCardHighlight')
+  |           |-- [CardButton_Hypercar] (Button, Style: Invisible/Transparent)
+  |           |-- [CardContent_Hypercar] (VerticalBox, Padding: 20)
+  |                 |-- [Badge_Hypercar] (TextBlock, Text: "QUAD-TURBO AWD & BOOST", Font: Rajdhani-Bold, Size 12, Color: Cyan)
+  |                 |-- [Name_Hypercar] (TextBlock, Text: "NEBULA HYPER-V", Font: Syncopate-Bold, Size 26)
+  |                 |-- [Tagline_Hypercar] (TextBlock, Text: "1500 HP // HYPERCAR CLASS", Font: Rajdhani-Medium, Size 14, Color: Gray)
+  |                 |-- [Spacer_HC] (Spacer, Size: 1.0 Fill)
+  |                 |-- [BestLap_Hypercar] (TextBlock, Text: "RECORD: --:--.---", Font: Rajdhani-Bold, Size 14, Color: Gold)
+  |                 |-- [Status_Hypercar] (TextBlock, Text: "SELECT", Font: Rajdhani-Bold, Size 16, Color: Gray)
+  |
+  |-- [StatsInspectorPanel] (VerticalBox)
+  |     Anchors: Right-Center (Min: 1,0.5, Max: 1,0.5) | Alignment: (1, 0.5)
+  |     Position: X: -80, Y: -120 | Size: X: 460, Y: 340
+  |     Z-Order: 10
+  |     |-- [Txt_SpecsTitle] (TextBlock, Text: "TELEMETRY & BENCHMARKS", Font: Rajdhani-Bold, Size 18, Color: Cyan)
+  |     |-- [Separator_Stats] (Image, Size: 460 x 2, Color: Cyan)
+  |     |
+  |     |-- [Row_Horsepower] (HorizontalBox, Margin: (0, 8, 0, 4))
+  |     |     |-- [Txt_HP_Name] (TextBlock, Text: "ENGINE OUTPUT:")
+  |     |     |-- [Spacer_HP] (Spacer, Size: 1.0 Fill)
+  |     |     |-- [Txt_HP_Value] (TextBlock, Text: "500 HP (470 N*m)", Font: Rajdhani-Bold, Color: White)
+  |     |
+  |     |-- [Row_TopSpeed] (VerticalBox, Margin: (0, 6, 0, 4))
+  |     |     |-- [Label_TopSpeed] (HorizontalBox)
+  |     |     |     |-- [Txt_TS_Name] (TextBlock, Text: "TOP SPEED")
+  |     |     |     |-- [Spacer_TS] (Spacer, Size: 1.0 Fill)
+  |     |     |     |-- [Txt_TS_Value] (TextBlock, Text: "320 KM/H (199 MPH)", Font: Rajdhani-Bold)
+  |     |     |-- [Bar_TopSpeed] (ProgressBar, Percent: 0.76, FillColor: Cyan)
+  |     |
+  |     |-- [Row_Acceleration] (VerticalBox, Margin: (0, 6, 0, 4))
+  |     |     |-- [Label_Acceleration] (HorizontalBox)
+  |     |     |     |-- [Txt_Acc_Name] (TextBlock, Text: "ACCELERATION (0-100)")
+  |     |     |     |-- [Spacer_Acc] (Spacer, Size: 1.0 Fill)
+  |     |     |     |-- [Txt_Acc_Value] (TextBlock, Text: "3.5 SECONDS", Font: Rajdhani-Bold)
+  |     |     |-- [Bar_Acceleration] (ProgressBar, Percent: 0.85, FillColor: Neon Green)
+  |     |
+  |     |-- [Row_Handling] (VerticalBox, Margin: (0, 6, 0, 4))
+  |     |     |-- [Label_Handling] (HorizontalBox)
+  |     |     |     |-- [Txt_Hand_Name] (TextBlock, Text: "CORNERING & DOWNFORCE")
+  |     |     |     |-- [Spacer_Hand] (Spacer, Size: 1.0 Fill)
+  |     |     |     |-- [Txt_Hand_Value] (TextBlock, Text: "85 / 100", Font: Rajdhani-Bold)
+  |     |     |-- [Bar_Handling] (ProgressBar, Percent: 0.85, FillColor: Crimson)
+  |     |
+  |     |-- [SpecialPerkBox] (Border, Margin: (0, 8, 0, 0), Padding: (12, 6, 12, 6), Background: SlateColor(0.04, 0.08, 0.12, 0.8))
+  |           |-- [Txt_SpecialPerk] (TextBlock, Text: "SPECIAL: BALANCED SLIP ANGLE CONTROL", Font: Rajdhani-Bold, Size 13, Color: Cyan)
+  |
+  |-- [BottomConfirmationBar] (HorizontalBox)
+  |     Anchors: Bottom-Stretch (Min: 0,1, Max: 1,1) | Alignment: (0, 1)
+  |     Offsets: Left: 80, Top: -80, Right: 80, Bottom: -20
+  |     Z-Order: 15
+  |     |-- [CarRotationHint] (TextBlock, Text: "[LMB DRAG] ROTATE 3D PREVIEW    [W/S] CAROUSEL")
+  |     |     Font: Rajdhani-Medium, Size 14, Color: (0.6, 0.6, 0.6, 0.7)
+  |     |-- [Spacer_Bottom] (Spacer, Size: 1.0 Fill)
+  |     |-- [Btn_Confirm] (Button)
+  |           Size: 320 x 58
+  |           Style: Normal (Velocity Crimson, Glow Shadow 4px)
+  |                  Hovered (Bright Neon Red, Glow Shadow 8px)
+  |           Child: [Txt_Confirm] (TextBlock, Text: "LOCK & RACE >", Font: Syncopate-Bold, Size 20)
+  |
+  |-- [ScreenTransitionFade] (Border)
+        Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+        Background Color: LinearColor(0,0,0,1)
+        Visibility: HitTestInvisible
+        Z-Order: 100
+
+--------------------------------------------------------------------------------
+2. ANIMATION TIMELINE REGISTRY:
+--------------------------------------------------------------------------------
+A. [Anim_CardHighlight] (Duration: 0.25s):
+   - Scaled card pop: RenderScale goes from (1.0, 1.0) to (1.06, 1.06) with Elastic EaseOut.
+   - Border emissive: Increases Dynamic Material Parameter "IsSelected" to 1.0.
+
+B. [Anim_StatBarFill] (Duration: 0.4s):
+   - Smooth interpolation of ProgressBar percentages from current to new car values.
+
+C. [Anim_CarTransition] (Duration: 0.3s):
+   - 3D Preview Turntable camera pans and refocuses with depth of field blur.
+
+--------------------------------------------------------------------------------
+3. SOUND BINDINGS:
+--------------------------------------------------------------------------------
+   - SFX_Hover: SoundCue'/Game/Audio/UI/SC_UI_Hover'
+   - SFX_CardSelect: SoundCue'/Game/Audio/UI/SC_UI_CardSelect' (Power-up chirp)
+   - SFX_ConfirmLock: SoundCue'/Game/Audio/UI/SC_UI_LockIn' (Heavy mechanical latch)
+
+--------------------------------------------------------------------------------
+4. C++ DELEGATES & EVENT GRAPH:
+--------------------------------------------------------------------------------
+
+Variables:
+   - CurrentSelectedCar: ECarType (Default = ECarType::Supercar)
+   - TargetGameMode: AVELOCITYXGameMode
+   - TargetGameInstance: UVELOCITYXGameInstance
+
+Event Construct:
+   1. Get GameMode -> Cast to AVELOCITYXGameMode -> Store TargetGameMode
+   2. Get GameInstance -> Cast to UVELOCITYXGameInstance -> Store TargetGameInstance
+   3. Bind Event to GameMode::OnCarSelected Delegate
+   4. Bind Event to GameMode::OnGameStateChanged Delegate
+   5. Read GameInstance BestLapTimes:
+      - BestLapTimes[0] -> Set BestLap_Supercar
+      - BestLapTimes[1] -> Set BestLap_TrackSupercar
+      - BestLapTimes[2] -> Set BestLap_Hypercar
+   6. CurrentSelectedCar = TargetGameMode->GetSelectedCarType()
+   7. Call UpdateSelectedCarUI(CurrentSelectedCar)
+
+Function UpdateSelectedCarUI(ECarType NewCar):
+   1. CurrentSelectedCar = NewCar
+   2. Play Sound 2D (SFX_CardSelect)
+   3. Switch (NewCar):
+      Case ECarType::Supercar:
+         - DynMat_CardSupercar->SetScalarParameterValue("IsSelected", 1.0)
+         - DynMat_CardTrackSupercar->SetScalarParameterValue("IsSelected", 0.0)
+         - DynMat_CardHypercar->SetScalarParameterValue("IsSelected", 0.0)
+         - Status_Supercar->SetText("[ SELECTED ]") (Neon Green)
+         - Status_TrackSupercar->SetText("SELECT") (Gray)
+         - Status_Hypercar->SetText("SELECT") (Gray)
+         - Txt_HP_Value->SetText("500 HP (470 N*m)")
+         - Txt_TS_Value->SetText("320 KM/H (199 MPH)")
+         - Txt_Acc_Value->SetText("3.5 SECONDS")
+         - Txt_Hand_Value->SetText("85 / 100")
+         - Bar_TopSpeed->SetPercent(0.76)
+         - Bar_Acceleration->SetPercent(0.85)
+         - Bar_Handling->SetPercent(0.85)
+         - Txt_SpecialPerk->SetText("SPECIAL: BALANCED SLIP ANGLE CONTROL")
+
+      Case ECarType::TrackSupercar:
+         - DynMat_CardSupercar->SetScalarParameterValue("IsSelected", 0.0)
+         - DynMat_CardTrackSupercar->SetScalarParameterValue("IsSelected", 1.0)
+         - DynMat_CardHypercar->SetScalarParameterValue("IsSelected", 0.0)
+         - Status_TrackSupercar->SetText("[ SELECTED ]") (Neon Green)
+         - Txt_HP_Value->SetText("720 HP (800 N*m)")
+         - Txt_TS_Value->SetText("355 KM/H (221 MPH)")
+         - Txt_Acc_Value->SetText("2.8 SECONDS")
+         - Txt_Hand_Value->SetText("98 / 100")
+         - Bar_TopSpeed->SetPercent(0.85)
+         - Bar_Acceleration->SetPercent(0.93)
+         - Bar_Handling->SetPercent(0.98)
+         - Txt_SpecialPerk->SetText("SPECIAL: ACTIVE DUAL-ELEMENT WING & DRS")
+
+      Case ECarType::Hypercar:
+         - DynMat_CardSupercar->SetScalarParameterValue("IsSelected", 0.0)
+         - DynMat_CardTrackSupercar->SetScalarParameterValue("IsSelected", 0.0)
+         - DynMat_CardHypercar->SetScalarParameterValue("IsSelected", 1.0)
+         - Status_Hypercar->SetText("[ SELECTED ]") (Neon Green)
+         - Txt_HP_Value->SetText("1500 HP (1600 N*m)")
+         - Txt_TS_Value->SetText("420 KM/H (261 MPH)")
+         - Txt_Acc_Value->SetText("2.4 SECONDS")
+         - Txt_Hand_Value->SetText("78 / 100")
+         - Bar_TopSpeed->SetPercent(1.00)
+         - Bar_Acceleration->SetPercent(0.98)
+         - Bar_Handling->SetPercent(0.78)
+         - Txt_SpecialPerk->SetText("SPECIAL: QUAD-TURBO HYBRID BOOST & AWD CATAPULT")
+
+   4. Play Animation (Anim_StatBarFill)
+   5. TargetGameMode->SelectCar(CurrentSelectedCar)
+
+On Clicked (CardButton_Supercar):
+   UpdateSelectedCarUI(ECarType::Supercar)
+
+On Clicked (CardButton_TrackSupercar):
+   UpdateSelectedCarUI(ECarType::TrackSupercar)
+
+On Clicked (CardButton_Hypercar):
+   UpdateSelectedCarUI(ECarType::Hypercar)
+
+On Clicked (Btn_Confirm):
+   1. Play Sound 2D (SFX_ConfirmLock)
+   2. TargetGameMode->SelectCar(CurrentSelectedCar)
+   3. TargetGameMode->SetGameState(EGameState::Racing)
+   4. Open Level "HighwayCorridor_Map"
+
+On Clicked (Btn_Back):
+   1. TargetGameMode->SetGameState(EGameState::MainMenu)
+   2. Create Widget (BP_MainMenu) -> Add to Viewport
+   3. Remove from Parent (Self)
+================================================================================
+*/

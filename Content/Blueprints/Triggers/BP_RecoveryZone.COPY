@@ -1,0 +1,112 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_RecoveryZone"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_RecoveryZone
+Asset Path: /Game/Blueprints/Triggers/BP_RecoveryZone
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Intelligent out-of-bounds recovery volume and vehicle unstuck zone.
+   Monitors boundaries on either side of the highway and shoulders. When a vehicle
+   exceeds containment, rolls onto its roof, or becomes pinned against terrain/barriers,
+   this actor teleports the vehicle back to the nearest safe lane with zeroed angular
+   momentum and proper forward heading (+X).
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── OutOfBoundsTriggerLeft (BoxComponent)
+  │     - BoxExtent: (50000.0, 2000.0, 1500.0) cm (Left off-road shoulder & forest zone)
+  │     - RelativeLocation: (50000.0, -3700.0, 500.0)
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │
+  ├── OutOfBoundsTriggerRight (BoxComponent)
+  │     - BoxExtent: (50000.0, 2000.0, 1500.0) cm (Right off-road shoulder & ravine zone)
+  │     - RelativeLocation: (50000.0, 3700.0, 500.0)
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │
+  ├── RespawnFlashEffect (NiagaraComponent)
+  │     - System: NS_VehicleRespawn_HologramFlash
+  │     - AutoActivate: False
+  │
+  └── Audio_RespawnChime (AudioComponent)
+        - Sound: SoundCue'/Game/Audio/Vehicles/SC_Vehicle_ResetChime'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- RecoveryElevationZ (Float) = 45.0 cm (Safe wheel contact height above road asphalt)
+- RecoveryDelaySeconds (Float) = 1.2 s (Brief cinematic fade before respawn)
+- RoadHalfWidth (Float) = 1675.0 cm (Boundary where asphalt ends and shoulder begins)
+- NorthboundLaneYPositions (Array<Float>) = [ 287.5, 662.5, 1037.5 ] (Inner, Middle, Outer)
+- bResetVelocityOnRecover (Boolean) = True
+- bPreserveMomentumRatio (Float) = 0.25 (Gives a rolling restart speed of ~50 km/h)
+
+--------------------------------------------------------------------------------
+3. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event OnComponentBeginOverlap (Trigger, OtherActor, OtherComp...):
+   1. Validation:
+      - Check if OtherActor is ABaseCar or AVELOCITYXVehicle
+      - If False, Return;
+
+   2. Delay Timer to Prevent Jitter:
+      - Set Timer by Event (Delay = RecoveryDelaySeconds):
+          ExecuteVehicleRecovery(OtherActor)
+
+Function ExecuteVehicleRecovery(AActor* VehicleActor):
+   If (!IsValid(VehicleActor)) Return;
+
+   FVector CrashLocation = VehicleActor->GetActorLocation();
+
+   // 1. Calculate Nearest Safe Highway Lane
+   // Find closest X along track, ensuring vehicle is not placed ahead of checkpoints
+   float SafeX = CrashLocation.X;
+   
+   // Determine closest lane in northbound direction (+X forward)
+   float ClosestDistance = 999999.0f;
+   float TargetLaneY = NorthboundLaneYPositions[1]; // Default to middle lane (662.5 cm)
+
+   FOR EACH LaneY in NorthboundLaneYPositions:
+      float Dist = FMath::Abs(CrashLocation.Y - LaneY);
+      If (Dist < ClosestDistance):
+         ClosestDistance = Dist;
+         TargetLaneY = LaneY;
+
+   FVector SafeRespawnLocation = FVector(SafeX, TargetLaneY, RecoveryElevationZ);
+   FRotator SafeRespawnRotation = FRotator(0.0f, 0.0f, 0.0f); // Facing forward along highway (+X)
+   FTransform SafeTransform = FTransform(SafeRespawnRotation, SafeRespawnLocation, FVector::OneVector);
+
+   // 2. Teleport & Physics Reset
+   VehicleActor->SetActorTransform(SafeTransform, false, nullptr, ETeleportType::ResetPhysics);
+
+   // 3. Reset Physics Simulation on Vehicle
+   If (VehicleActor->IsA(ABaseCar::StaticClass())):
+      ABaseCar* Car = Cast<ABaseCar>(VehicleActor);
+      Car->ResetVehicle();
+   Else If (VehicleActor->IsA(AVELOCITYXVehicle::StaticClass())):
+      AVELOCITYXVehicle* Car = Cast<AVELOCITYXVehicle>(VehicleActor);
+      Car->ResetVehicle();
+
+   // 4. Play Audio & Visual Feedback
+   Audio_RespawnChime->Play();
+   RespawnFlashEffect->SetWorldLocation(SafeRespawnLocation);
+   RespawnFlashEffect->Activate(true);
+
+   // 5. Notify HUD & GameMode
+   APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+   If (PC && PC->GetHUD() && PC->GetHUD()->GetClass()->ImplementsInterface(UBPI_CheckpointListener::StaticClass())):
+      IBPI_CheckpointListener::Execute_OnVehicleRecoveredNotification(PC->GetHUD(), VehicleActor, SafeRespawnLocation, 0.0f);
+================================================================================
+*/

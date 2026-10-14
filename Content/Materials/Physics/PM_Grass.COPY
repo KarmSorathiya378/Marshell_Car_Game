@@ -1,0 +1,25 @@
+Begin Object Class=/Script/PhysicsCore.PhysicalMaterial Name="PM_Grass"
+   Friction=0.380000
+   FrictionCombineMode=Multiply
+   bOverrideFrictionCombineMode=True
+   Restitution=0.080000
+   RestitutionCombineMode=Average
+   bOverrideRestitutionCombineMode=True
+   Density=1.200000
+   RaiseMassToPower=1.000000
+   DestructibleDamageThresholdScale=1.000000
+   SurfaceType=SurfaceType4
+End Object
+
+/*
+================================================================================
+VELOCITY X - Physical Material: PM_Grass
+Asset Path: /Game/Materials/Physics/PM_Grass
+Target: Roadside Grass Verge, Terrain Earth, Median Grass
+================================================================================
+- Friction: 0.38 (Slippery turf traction)
+- Restitution: 0.08 (Soft soil absorption)
+- Surface Type: SurfaceType4 (SurfaceType_Grass)
+  * Triggers: Turf clods, green blade particulate, soft muffled engine tire audio
+================================================================================
+*/

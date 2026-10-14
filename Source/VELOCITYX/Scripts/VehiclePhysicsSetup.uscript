@@ -1,0 +1,13 @@
+// VELOCITY X - Chaos Vehicle Physics Setup Configuration Script (.uscript)
+
+[Physics.ChaosWheelDefaults]
+WheelRadius=35.0
+WheelWidth=25.0
+FrictionForceMultiplier=2.0
+CorneringStiffness=1000.0
+
+[Physics.SuspensionDefaults]
+SuspensionMaxRaise=10.0
+SuspensionMaxDrop=12.0
+SpringRate=45000.0
+DampingRate=3500.0

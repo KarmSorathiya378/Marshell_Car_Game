@@ -1,0 +1,32 @@
+Begin Object Class=/Script/PhysicsCore.PhysicalMaterial Name="PM_Asphalt"
+   Friction=1.120000
+   FrictionCombineMode=Multiply
+   bOverrideFrictionCombineMode=True
+   Restitution=0.040000
+   RestitutionCombineMode=Average
+   bOverrideRestitutionCombineMode=True
+   Density=2.400000
+   RaiseMassToPower=1.000000
+   DestructibleDamageThresholdScale=1.000000
+   SurfaceType=SurfaceType1
+End Object
+
+/*
+================================================================================
+VELOCITY X - Physical Material: PM_Asphalt
+Asset Path: /Game/Materials/Physics/PM_Asphalt
+Target: Chaos Vehicle Wheel & Highway Road Deck Surface Physics
+
+PROPERTIES & TIRE DYNAMICS:
+--------------------------------------------------------------------------------
+- Friction: 1.12 (High tire grip / adhesion for high-speed stability at 250+ MPH)
+- Friction Combine Mode: Multiply (Couples with Chaos Vehicle wheel tire friction curve)
+- Restitution: 0.04 (Low bounciness / damped suspension absorption)
+- Surface Type: SurfaceType1 (SurfaceType_Asphalt)
+  * Triggers: Tire skid mark decals, dry smoke particle emitters, road tire roar audio
+- Associated Materials:
+  * /Game/Materials/Road/M_Asphalt_Master
+  * /Game/Materials/Road/MI_Highway_Asphalt_Dry
+  * /Game/Materials/Road/M_RoadMarking_Master
+================================================================================
+*/

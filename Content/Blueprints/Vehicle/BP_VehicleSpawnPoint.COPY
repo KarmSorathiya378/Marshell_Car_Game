@@ -1,0 +1,68 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VehicleSpawnPoint"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.PlayerStart
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_VehicleSpawnPoint
+Asset Path: /Game/Blueprints/Vehicle/BP_VehicleSpawnPoint
+Target Parent: APlayerStart
+Author: Level Designer
+Description:
+   Specialized racing grid spawn point for VELOCITY X.
+   Defines starting grid slots with visual road surface box decals, lane index
+   tags, clearance traces, and orientation vectors (+X).
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── ArrowComponent (ArrowComponent)
+  │     - ArrowColor: (0.0, 0.85, 1.0, 1.0) - Cyan Forward Vector (+X)
+  │     - ArrowSize: 2.5
+  │
+  ├── GridBoxDecal (DecalComponent)
+  │     - DecalMaterial: M_GridBox_Decal_White
+  │     - DecalSize: (600.0, 240.0, 50.0) cm (Standard FIA GT grid box marking)
+  │     - RelativeRotation: (-90.0, 0.0, 0.0)
+  │
+  ├── SlotNumberText (TextRenderComponent)
+  │     - Text: "01"
+  │     - TextRenderColor: (0.9, 0.9, 0.9, 1.0)
+  │     - WorldSize: 72.0
+  │     - RelativeLocation: (280.0, -140.0, 2.0)
+  │     - RelativeRotation: (90.0, 0.0, 0.0)
+  │
+  └── Billboard (BillboardComponent)
+        - Sprite: Texture2D'/Engine/EditorResources/S_Player'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- GridSlotIndex (Integer, Editable) = 1 (1 = Pole Position, 2 = P2, etc.)
+- LaneNumber (Integer, Editable) = 2 (1 = Inner Fast Lane, 2 = Middle, 3 = Outer)
+- bIsPolePosition (Boolean, Editable) = False
+- VehicleClassOverride (TSubclassOf<ABaseCar>) = None
+- ClearanceRadiusCm (Float) = 350.0 cm (Ensures no physics overlap on spawn)
+
+--------------------------------------------------------------------------------
+3. CONSTRUCTION SCRIPT:
+--------------------------------------------------------------------------------
+Function UserConstructionScript():
+   // Update visual slot text
+   FString SlotStr = (GridSlotIndex < 10) ? FString::Printf(TEXT("0%d"), GridSlotIndex) : FString::FromInt(GridSlotIndex);
+   SlotNumberText->SetText(FText::FromString(SlotStr));
+
+   // Tag identification for GameMode / Spawner discovery
+   Tags.Empty();
+   Tags.Add(FName(*FString::Printf(TEXT("GridSlot_%d"), GridSlotIndex)));
+   Tags.Add(FName(*FString::Printf(TEXT("Lane_%d"), LaneNumber)));
+   If (bIsPolePosition || GridSlotIndex == 1):
+      Tags.Add(FName("PolePosition"));
+      GridBoxDecal->SetDecalMaterial(M_GridBox_Decal_Gold);
+================================================================================
+*/

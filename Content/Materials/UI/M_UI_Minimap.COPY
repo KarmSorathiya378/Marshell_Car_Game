@@ -1,0 +1,88 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_Minimap"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_Minimap
+Asset Path: /Game/Materials/UI/M_UI_Minimap
+Target Use: Circular Tactical Road Mini-map / Radar for BP_VelocityHUD
+Resolution Target: 1920x1080 UI canvas (Native 280x280 Circular HUD Radar)
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. RADAR / MINI-MAP DISPLAY:
+   - High-contrast circular tactical radar mounted at top-right / bottom-left of HUD.
+   - Shows road spline path ahead with distance gradient fade.
+   - Central player arrow blip aligned with vehicle forward vector.
+   - Rotating compass ring or north indicator.
+   - Range circles (50m, 100m, 200m ahead) with range text.
+   - Radar sweep beam line rotating clockwise with phosphor trailing glow.
+
+2. DYNAMIC PARAMETERS:
+   - "PlayerHeadingAngle" (Scalar, Default=0.0):
+     Vehicle yaw angle for map rotation or blip orientation.
+   - "RoadCurvature" (Scalar, Default=0.0):
+     Approaching road curve indicator (-1.0 sharp left, +1.0 sharp right).
+   - "RadarRange" (Scalar, Default=250.0):
+     Forward projection distance in meters.
+   - "Color_RadarBackground" (LinearColor, Default=(0.02, 0.04, 0.07, 0.75)):
+     Translucent radar cockpit glass.
+   - "Color_RoadPath" (LinearColor, Default=(0.0, 0.85, 1.0, 1.0) - Cyan Neon):
+     Road highway ribbon.
+   - "Color_PlayerBlip" (LinearColor, Default=(1.0, 0.95, 0.1, 1.0) - High-Vis Amber):
+     Player vehicle chevron.
+   - "SweepSpeed" (Scalar, Default=1.2):
+     Rotational speed of scanning radar line.
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Polar Coordinates from Center
+   float2 CenterUV = InUV - float2(0.5, 0.5);
+   float Dist = length(CenterUV) * 2.0; // 0.0 center, 1.0 perimeter
+   float Angle = atan2(CenterUV.y, CenterUV.x);
+
+   // Outer Circular Boundary & Reticle Rings
+   float BorderRing = smoothstep(0.98, 0.96, Dist) * smoothstep(0.92, 0.94, Dist);
+   float InnerRing50 = smoothstep(0.52, 0.50, Dist) * smoothstep(0.46, 0.48, Dist);
+   float RadarGlass = step(Dist, 0.96);
+
+   // 2. Radar Sweep Beam
+   float SweepAngle = frac((Angle + 3.14159) / 6.28318 - (View.GameTime * SweepSpeed * 0.5));
+   float SweepTrail = pow(SweepAngle, 8.0) * 0.45;
+
+   // 3. Procedural Road Path Ahead (Rendered as curved ribbon forward from bottom)
+   // Road starts at center (0, 0) and extends upward (-Y)
+   float ForwardCoord = -CenterUV.y * 2.0;
+   float SideCoord = CenterUV.x * 2.0;
+   float CurveOffset = pow(saturate(ForwardCoord), 2.0) * RoadCurvature * 0.5;
+   float DistToRoadCenter = abs(SideCoord - CurveOffset);
+   float RoadRibbonMask = smoothstep(0.12, 0.08, DistToRoadCenter) * step(0.0, ForwardCoord) * step(Dist, 0.92);
+
+   // 4. Player Vehicle Chevron (Sharp arrow in center)
+   float BlipX = abs(CenterUV.x * 15.0);
+   float BlipY = CenterUV.y * 15.0;
+   float ArrowMask = step(BlipX, 1.0) * step(BlipY, 0.5) * step(-1.0, BlipY) * step(BlipX - BlipY, 1.0);
+
+   // 5. Composite Output
+   float3 Color = (Color_RadarBackground.rgb * RadarGlass)
+                + (Color_RoadPath.rgb * RoadRibbonMask * 2.2)
+                + (Color_RadarBackground.rgb * SweepTrail * 1.5)
+                + (float3(0.3, 0.5, 0.8) * (BorderRing + InnerRing50 * 0.5))
+                + (Color_PlayerBlip.rgb * ArrowMask * 3.0);
+
+   float Alpha = RadarGlass * saturate(Color_RadarBackground.a + RoadRibbonMask + BorderRing + ArrowMask);
+
+   Material.EmissiveColor = Color;
+   Material.Opacity = Alpha;
+================================================================================
+*/

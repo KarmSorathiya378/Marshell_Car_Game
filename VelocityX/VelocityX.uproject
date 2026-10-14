@@ -1,0 +1,33 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.7",
+  "Category": "",
+  "Description": "VELOCITY X Racing Simulator",
+  "Modules": [
+    {
+      "Name": "VelocityX",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "Engine"
+      ]
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "EnhancedInput",
+      "Enabled": true
+    },
+    {
+      "Name": "ChaosVehiclesPlugin",
+      "Enabled": true
+    },
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    }
+  ]
+}

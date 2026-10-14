@@ -1,0 +1,78 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_CarCardHighlight"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_CarCardHighlight
+Asset Path: /Game/Materials/UI/M_UI_CarCardHighlight
+Target Use: Interactive Car Card Highlight & Border Animation for BP_CarSelection
+Resolution Target: 1920x1080 UI canvas (Native 500x700 Card Frame)
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. CARD HIGHLIGHT & ACTIVE STATE:
+   - Futuristic sci-fi carbon-fiber chamfered vehicle selection frame.
+   - Dynamic animated neon edge pulse traversing clockwise along the card border.
+   - Subtly lit carbon-weave background pattern when hovered.
+   - Selected state: Blazing crimson/gold neon halo with energy discharge.
+   - Unselected state: Sleek, stealthy dark graphite frame with low-opacity cyan accents.
+
+2. DYNAMIC PARAMETERS:
+   - "IsSelected" (Scalar, Range [0.0 or 1.0], Default=0.0):
+     Toggles between inactive stealth and active high-energy halo.
+   - "HoverIntensity" (Scalar, Range [0.0 - 1.0], Default=0.0):
+     Interactive mouse cursor hover lerp factor.
+   - "ActiveColor" (LinearColor, Default=(1.0, 0.2, 0.05, 1.0) - Velocity Flame).
+   - "IdleColor" (LinearColor, Default=(0.1, 0.25, 0.4, 0.5) - Graphite Cyan).
+   - "BorderThickness" (Scalar, Default=0.025):
+     Normalized perimeter frame width.
+   - "CornerCutout" (Scalar, Default=0.06):
+     Chamfered racing angle at card corners.
+   - "ScanlineSpeed" (Scalar, Default=2.0):
+     Edge light traversal velocity.
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Chamfered Rounded/Cutout Card Box SDF
+   float2 Pos = abs(InUV - float2(0.5, 0.5));
+   float CornerChamfer = (Pos.x + Pos.y) - (0.5 + 0.5 - CornerCutout);
+   float BoxDist = max(max(Pos.x - (0.5 - BorderThickness), Pos.y - (0.5 - BorderThickness)), CornerChamfer);
+   float OuterCut = step(Pos.x, 0.5) * step(Pos.y, 0.5) * step(CornerChamfer, 0.0);
+
+   // Border Mask
+   float BorderMask = step(0.0, BoxDist) * OuterCut;
+   float InteriorMask = (1.0 - BorderMask) * OuterCut;
+
+   // 2. Clockwise Edge Light Sweep
+   float PerimeterAngle = atan2(InUV.y - 0.5, InUV.x - 0.5); // [-PI, PI]
+   float NormalizedPerimeter = (PerimeterAngle + 3.14159) / 6.28318;
+   float EdgePulse = frac(NormalizedPerimeter - (View.GameTime * ScanlineSpeed * 0.2));
+   float EdgeGlow = pow(EdgePulse, 6.0) * 3.0;
+
+   // 3. Carbon Texture Overlay in Interior
+   float2 CarbonUV = InUV * float2(30.0, 42.0);
+   float CarbonPattern = (sin(CarbonUV.x) * sin(CarbonUV.y)) * 0.5 + 0.5;
+   float3 InteriorColor = float3(0.02, 0.03, 0.05) + (CarbonPattern * 0.02);
+
+   // 4. Color Selection & Glow Composition
+   float3 BaseBorderColor = lerp(IdleColor.rgb, ActiveColor.rgb, IsSelected);
+   BaseBorderColor = lerp(BaseBorderColor, BaseBorderColor * 1.5, HoverIntensity);
+
+   float3 FinalBorder = BaseBorderColor * (1.0 + EdgeGlow * IsSelected * 1.5);
+   float3 OutputRGB = (InteriorMask * InteriorColor) + (BorderMask * FinalBorder * 2.0);
+   float OutputAlpha = OuterCut * saturate(0.6 + (IsSelected * 0.4) + (HoverIntensity * 0.2));
+
+   Material.EmissiveColor = OutputRGB;
+   Material.Opacity = OutputAlpha;
+================================================================================
+*/

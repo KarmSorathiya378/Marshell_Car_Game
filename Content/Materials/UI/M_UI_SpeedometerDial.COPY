@@ -1,0 +1,99 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_SpeedometerDial"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_SpeedometerDial
+Asset Path: /Game/Materials/UI/M_UI_SpeedometerDial
+Target Use: High-Performance Radial Speedometer Gauge Dial for BP_VelocityHUD
+Resolution Target: 1920x1080 UI canvas (Native 512x512 gauge element)
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. RADIAL SWEEP GAUGE:
+   - Polar coordinate mapping around gauge center (0.5, 0.5).
+   - Angle sweep range: 240 degrees (from -210 deg at 0 km/h to +30 deg at 400 km/h).
+   - Outer glow ring, inner recessed track, and tick mark subdivisions.
+   - Minor tick marks every 10 km/h, Major tick marks every 50 km/h.
+
+2. DYNAMIC PARAMETER REGISTRY (Exposed to Widget Dynamic Material Instance):
+   - "CurrentSpeedRatio" (Scalar, Range [0.0 - 1.0], Default=0.0):
+     Normalized speed value = CurrentSpeed / MaxSpeed (e.g. 240 km/h / 400 km/h = 0.60).
+   - "GaugeColor_Low" (LinearColor, Default=(0.0, 0.8, 1.0, 1.0) - Cyan):
+     Active speed arc color at lower speeds (0 - 150 km/h).
+   - "GaugeColor_Mid" (LinearColor, Default=(0.2, 1.0, 0.4, 1.0) - Neon Lime):
+     Active speed arc color at mid speeds (150 - 280 km/h).
+   - "GaugeColor_Peak" (LinearColor, Default=(1.0, 0.15, 0.05, 1.0) - Velocity Crimson):
+     Active speed arc color at hyper speeds (> 280 km/h).
+   - "BackgroundArcColor" (LinearColor, Default=(0.05, 0.08, 0.12, 0.6) - Deep Carbon Navy):
+     Unfilled portion of the speedometer arc.
+   - "NeedleColor" (LinearColor, Default=(1.0, 0.9, 0.1, 1.0) - Racing Yellow):
+     Needle pointer tip and radiant indicator.
+   - "TickColor" (LinearColor, Default=(0.8, 0.85, 0.95, 0.8)):
+     Tick markers and peripheral ring.
+   - "GlowIntensity" (Scalar, Default=3.5):
+     Emissive multiplier for HDR bloom effect on HUD.
+   - "NeedleAngleOffset" (Scalar, Default=0.0):
+     Rotational offset for precision needle alignment.
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Polar Coordinates
+   float2 CenteredUV = InUV - float2(0.5, 0.5);
+   float Radius = length(CenteredUV) * 2.0; // 0.0 at center, 1.0 at outer edge
+   float Angle = atan2(CenteredUV.y, CenteredUV.x); // [-PI, PI]
+
+   // Remap Angle to [0.0, 1.0] along the 240-degree dial arc:
+   // Arc starts at 150 deg (5*PI/6) and sweeps clockwise by 240 deg (4*PI/3)
+   float AngleNorm = (Angle + 2.61799) / 4.18879; // Normalized sweep [0, 1]
+   AngleNorm = frac(AngleNorm);
+
+   // 2. Ring Masks
+   float OuterRing = smoothstep(0.92, 0.90, Radius) * smoothstep(0.82, 0.84, Radius);
+   float InnerTrack = smoothstep(0.82, 0.80, Radius) * smoothstep(0.72, 0.74, Radius);
+   float CenterHub  = smoothstep(0.18, 0.16, Radius);
+
+   // 3. Tick Marks (Procedural sine wave modulation along perimeter)
+   float MinorTicks = saturate(sin(Angle * 40.0) * 12.0 - 10.0) * smoothstep(0.82, 0.85, Radius) * smoothstep(0.90, 0.87, Radius);
+   float MajorTicks = saturate(sin(Angle * 8.0) * 16.0 - 13.0) * smoothstep(0.78, 0.82, Radius) * smoothstep(0.91, 0.87, Radius);
+   float CombinedTicks = saturate(MinorTicks * 0.6 + MajorTicks * 1.0);
+
+   // 4. Active Fill Arc Mask
+   float ArcMask = step(AngleNorm, CurrentSpeedRatio) * step(0.0, AngleNorm) * step(AngleNorm, 1.0);
+   float FillIntensity = ArcMask * InnerTrack;
+
+   // 5. Speed Gradient Ramp
+   float3 ActiveColor = (CurrentSpeedRatio < 0.5) 
+       ? lerp(GaugeColor_Low.rgb, GaugeColor_Mid.rgb, CurrentSpeedRatio * 2.0)
+       : lerp(GaugeColor_Mid.rgb, GaugeColor_Peak.rgb, (CurrentSpeedRatio - 0.5) * 2.0);
+
+   // 6. Needle Rendering (Sharp tapered ray pointing to CurrentSpeedRatio)
+   float TargetAngle = -2.61799 + (CurrentSpeedRatio * 4.18879);
+   float NeedleAngleDiff = abs(Angle - TargetAngle);
+   if (NeedleAngleDiff > 3.14159) NeedleAngleDiff = 6.28318 - NeedleAngleDiff;
+   float NeedleMask = saturate(1.0 - (NeedleAngleDiff * Radius * 45.0)) * smoothstep(0.15, 0.20, Radius) * smoothstep(0.86, 0.82, Radius);
+
+   // 7. Composition
+   float3 DialRGB = (BackgroundArcColor.rgb * InnerTrack * (1.0 - ArcMask))
+                  + (ActiveColor * FillIntensity * GlowIntensity)
+                  + (TickColor.rgb * CombinedTicks * 1.5)
+                  + (TickColor.rgb * OuterRing * 0.8)
+                  + (NeedleColor.rgb * NeedleMask * (GlowIntensity * 1.8));
+
+   float DialAlpha = saturate(OuterRing + InnerTrack + CombinedTicks + NeedleMask + CenterHub * 0.9);
+
+   // Final Material Outputs for UMG Slate Brush
+   Material.EmissiveColor = DialRGB;
+   Material.Opacity = DialAlpha;
+================================================================================
+*/

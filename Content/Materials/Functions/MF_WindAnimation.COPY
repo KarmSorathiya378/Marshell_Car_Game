@@ -1,0 +1,42 @@
+Begin Object Class=/Script/Engine.MaterialFunction Name="MF_WindAnimation"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   Description="Procedural multi-frequency vertex wind animation for trees, bushes, and highway foliage."
+   bExposeToLibrary=True
+   FunctionExpressions(0)=MaterialExpressionFunctionInput'MaterialExpressionFunctionInput_0'
+   FunctionExpressions(1)=MaterialExpressionFunctionInput'MaterialExpressionFunctionInput_1'
+   FunctionExpressions(2)=MaterialExpressionFunctionInput'MaterialExpressionFunctionInput_2'
+   FunctionExpressions(3)=MaterialExpressionFunctionInput'MaterialExpressionFunctionInput_3'
+   FunctionExpressions(4)=MaterialExpressionFunctionOutput'MaterialExpressionFunctionOutput_0'
+   FunctionEditorComments(0)=MaterialExpressionComment'MaterialExpressionComment_0'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Material Function: MF_WindAnimation
+Path: /Game/Materials/Functions/MF_WindAnimation
+Description:
+   Computes realistic dual-frequency wind vertex displacement with:
+   1. Low-frequency trunk/branch sway (macro wave)
+   2. High-frequency leaf flutter / grass shivering (micro wave)
+   3. Directional wind vector support
+   4. Height-based bending mask (Root remains stationary, canopy flexes)
+================================================================================
+
+INPUTS:
+   - WindSpeed (Scalar, Default = 1.2): Frequency multiplier for wind cycles
+   - WindIntensity (Scalar, Default = 15.0): Maximum vertex displacement in cm
+   - WindDirection (Vector3, Default = (1.0, 0.3, 0.0)): Normalized wind direction
+   - HeightMask (Scalar, Default = VertexColor.R or WorldZ gradient): 0 at root, 1 at tip
+
+OUTPUTS:
+   - WorldPositionOffset (Vector3): Connect directly to World Position Offset in Master Material
+
+MATHEMATICAL GRAPH FORMULA:
+   TimeScaled = Time * WindSpeed;
+   TrunkSway = WindDirection * sin(TimeScaled * 1.5 + dot(WorldPosition, WindDirection) * 0.002) * (WindIntensity * 0.7);
+   LeafShiver = sin(TimeScaled * 6.0 + dot(WorldPosition, Vector3(0.1, 0.1, 0.1))) * (WindIntensity * 0.3) * VertexNormal;
+   WorldPositionOffset = (TrunkSway + LeafShiver) * HeightMask;
+*/

@@ -1,0 +1,35 @@
+// VELOCITY X - BP_GameInstance Blueprint Architecture Specification (.uscript)
+// Defines the Blueprint Game Instance class setup, parentage, variables, and delegate wiring
+
+[Blueprint.ClassDefinition]
+BlueprintName="BP_GameInstance"
+ParentClass="/Script/VELOCITYX.UBP_GameInstance_Base"
+NativeBaseClass="UBP_GameInstance_Base"
+Module="VELOCITYX"
+
+[Blueprint.InheritedFeatures]
+; Telemetry tracking capabilities:
+; - Real-time speed (MPH, KPH), RPM, Gear
+; - Current Lap, Best Lap, Last Lap
+; - Lap history array (TArray<float>)
+; - Peak speed and max RPM
+; - Distance traveled (meters)
+; - Input telemetry (throttle, brake, steering)
+
+; High score and leaderboard capabilities:
+; - Persistent high score table (top 10 records)
+; - Score accumulation and multiplier mechanics
+; - Clean lap bonuses, drift score calculators, high-speed bonuses
+; - JSON disk serialization / deserialization
+
+[Blueprint.EventDispatchers]
+EventDispatcher.1="OnTelemetryUpdated (Snapshot: FTelemetrySnapshot)"
+EventDispatcher.2="OnNewBestLap (NewBestLapTime: float, LapNumber: int32)"
+EventDispatcher.3="OnLapCompleted (LapTime: float, LapNumber: int32, bWasBestLap: bool)"
+EventDispatcher.4="OnScoreChanged (NewScore: int64, DeltaPoints: int64)"
+EventDispatcher.5="OnNewHighScore (NewEntry: FHighScoreEntry, Rank: int32)"
+
+[Blueprint.HookImplementations]
+Function.1="BP_OnTelemetryUpdated -> Updates BP_VelocityHUD telemetry gauges"
+Function.2="BP_OnNewBestLapTime -> Fires 'NEW BEST LAP' HUD banner animation"
+Function.3="BP_OnNewHighScoreAchieved -> Triggers leaderboard celebration audio and popup"

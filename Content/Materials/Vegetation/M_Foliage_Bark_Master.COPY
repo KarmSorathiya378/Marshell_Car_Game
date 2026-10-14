@@ -1,0 +1,38 @@
+Begin Object Class=/Script/Engine.Material Name="M_Foliage_Bark_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Foliage_Bark_Master
+Asset Path: /Game/Materials/Vegetation/M_Foliage_Bark_Master
+Target Use: Tree trunks, heavy branches for highway perimeter forest
+
+PBR SPECIFICATION & PARAMETER REGISTRY:
+--------------------------------------------------------------------------------
+1. BASE COLOR (Albedo):
+   - Param "Bark_Tint" (LinearColor, Default=(0.22, 0.18, 0.15, 1.0)):
+     Weathered pine / oak bark.
+   - Param "Moss_Tint" (LinearColor, Default=(0.18, 0.28, 0.07, 1.0)):
+     Northern exposure moss overlay.
+   - Param "Moss_Coverage" (Scalar, Default=0.45):
+     Driven by World Normal Dot Vector(0, 1, 0) for directional growth.
+
+2. ROUGHNESS & NORMAL:
+   - Param "Roughness_Bark" (Scalar, Default=0.88): Porous organic wood.
+   - Param "Roughness_Moss" (Scalar, Default=0.72): Soft velvety moss.
+   - Param "Normal_Depth_Scale" (Scalar, Default=1.4): Deep furrows and bark cracks.
+
+3. WIND DISPLACEMENT:
+   - Integrates MF_WindAnimation with height mask (Z > 50cm) to flex trunk naturally.
+================================================================================
+*/

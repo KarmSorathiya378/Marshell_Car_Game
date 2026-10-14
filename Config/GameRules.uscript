@@ -1,0 +1,13 @@
+// VELOCITY X - Race Rules and Timing Settings Script (.uscript)
+
+[RaceRules]
+DefaultLapCount=3
+CountdownSeconds=3.0
+AllowRespawn=true
+RespawnPenaltySeconds=2.0
+GhostCarEnabled=true
+
+[Timer]
+Precision=3
+SectorCount=3
+RecordLapTimes=true

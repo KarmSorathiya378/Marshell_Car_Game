@@ -1,0 +1,95 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_TrafficVehicleBase"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_TrafficVehicleBase
+Asset Path: /Game/Blueprints/Traffic/BP_TrafficVehicleBase
+Target Parent: AActor
+Description:
+   Autonomous civilian traffic vehicle optimized for 50km multi-lane highway.
+   Features Intelligent Driver Model (IDM) forward raycast avoidance, lane tracking,
+   dynamic brake light response, and object pool recycling.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── VehicleMesh (StaticMeshComponent or SkeletalMeshComponent)
+  │     - Mesh: SM_Traffic_Sedan_Civic / SM_Traffic_SemiTruck / SM_Traffic_SUV
+  │     - CollisionProfile: "Vehicle" (Blocks player car, triggers collision events)
+  │
+  ├── BoxCollision_Proximity (BoxComponent)
+  │     - Extents: (240.0, 110.0, 75.0) cm
+  │
+  ├── Headlight_Left (SpotLightComponent)
+  │     - Intensity: 32,000 Lumens
+  │     - AttenuationRadius: 2800 cm
+  │     - RelativeLocation: (220.0, -85.0, 65.0)
+  │
+  ├── Headlight_Right (SpotLightComponent)
+  │     - Intensity: 32,000 Lumens
+  │     - AttenuationRadius: 2800 cm
+  │     - RelativeLocation: (220.0, 85.0, 65.0)
+  │
+  ├── Taillight_Brake_Left (PointLightComponent)
+  │     - LightColor: (255, 10, 5) [Red]
+  │     - Intensity: 500 Lumens (Standby), 4000 Lumens (Braking)
+  │     - RelativeLocation: (-220.0, -80.0, 75.0)
+  │
+  └── Taillight_Brake_Right (PointLightComponent)
+        - LightColor: (255, 10, 5)
+        - Intensity: 500 Lumens (Standby), 4000 Lumens (Braking)
+        - RelativeLocation: (-220.0, 80.0, 75.0)
+
+--------------------------------------------------------------------------------
+VARIABLES:
+--------------------------------------------------------------------------------
+- AssignedLaneIndex (Integer) = 1 (1 = Slow, 2 = Middle, 3 = Fast)
+- TargetSpeedKPH (Float) = 110.0 km/h
+- CurrentSpeedKPH (Float) = 110.0 km/h
+- ForwardDetectionDistance (Float) = 4500.0 cm (45 meters)
+- bIsBraking (Boolean) = False
+- TravelDirection (Float) = 1.0 (+1.0 for Northbound, -1.0 for Southbound)
+- LaneCenterY (Float) = 0.0 cm
+
+--------------------------------------------------------------------------------
+EVENT GRAPH RUNTIME TICK:
+--------------------------------------------------------------------------------
+Event Tick(DeltaTime):
+   // 1. FORWARD OBSTACLE RAYCAST (Intelligent Driver Model)
+   FVector RayStart = GetActorLocation() + FVector(TravelDirection * 200.0f, 0.0f, 60.0f);
+   FVector RayEnd   = RayStart + FVector(TravelDirection * ForwardDetectionDistance, 0.0f, 0.0f);
+   
+   FHitResult Hit;
+   bool bObstacleAhead = LineTraceSingleByChannel(RayStart, RayEnd, ECC_Vehicle, Hit);
+
+   If (bObstacleAhead):
+      // Decelerate to avoid collision
+      bIsBraking = true;
+      CurrentSpeedKPH = FMath::FInterpTo(CurrentSpeedKPH, 50.0f, DeltaTime, 4.0f);
+   Else:
+      // Accelerate back to target cruising speed
+      bIsBraking = false;
+      CurrentSpeedKPH = FMath::FInterpTo(CurrentSpeedKPH, TargetSpeedKPH, DeltaTime, 1.5f);
+
+   // 2. APPLY BRAKE LIGHT INTENSITY
+   float BrakeLumen = bIsBraking ? 4000.0f : 500.0f;
+   Taillight_Brake_Left->SetIntensity(BrakeLumen);
+   Taillight_Brake_Right->SetIntensity(BrakeLumen);
+
+   // 3. MOVE FORWARD ALONG HIGHWAY AXIS
+   // 1 km/h = 27.7778 cm/s
+   float MoveDistanceCm = (CurrentSpeedKPH * 27.7778f) * DeltaTime * TravelDirection;
+   FVector NewLoc = GetActorLocation() + FVector(MoveDistanceCm, 0.0f, 0.0f);
+   
+   // Keep locked to designated lane center Y with gentle steering spring
+   NewLoc.Y = FMath::FInterpTo(NewLoc.Y, LaneCenterY, DeltaTime, 5.0f);
+   SetActorLocation(NewLoc, true);
+================================================================================
+*/

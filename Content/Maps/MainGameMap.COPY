@@ -1,0 +1,133 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_MainGameMapLevel"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.LevelScriptActor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Level Blueprint: BP_MainGameMapLevel
+Asset Path: /Game/Maps/BP_MainGameMapLevel
+Associated Level: /Game/Maps/MainGameMap.umap
+Parent Class: ALevelScriptActor
+Author: Level Designer
+Description:
+   Level orchestrator for the primary VELOCITY X racing circuit (MainGameMap).
+   Coordinates starting grid spawn points, countdown sequence synchronization,
+   4 milestone checkpoint splits, checkered finish line celebration, and real-time
+   recovery watchdog handling.
+================================================================================
+
+1. LEVEL ACTOR REGISTRY & VARIABLES:
+--------------------------------------------------------------------------------
+- VehicleSpawnerRef (ABP_VehicleSpawner*)
+- StartLineTriggerRef (ABP_StartLineTrigger*)
+- CheckpointTriggers (Array<ABP_CheckpointTrigger*>)
+- FinishLineTriggerRef (ABP_FinishLineTrigger*)
+- RecoveryZoneRef (ABP_RecoveryZone*)
+- RecoveryHandlerRef (ABP_VehicleRecoveryHandler*)
+- HighwayGeneratorRef (ABP_HighwayGenerator*)
+- AtmosphericLightingRef (ABP_AtmosphericLightingSetup*)
+
+- TotalTrackDistanceKm (Float) = 7.5 km (750,000 uu)
+- CheckpointDistances (Array<Float>) = [ 1.5, 3.0, 4.5, 6.0 ] km
+- CurrentPlayerKilometer (Float) = 0.0 km
+- ElapsedRaceTime (Float) = 0.0 s
+- bRaceCompleted (Boolean) = False
+
+--------------------------------------------------------------------------------
+2. EVENT BEGIN PLAY SEQUENCE:
+--------------------------------------------------------------------------------
+Event BeginPlay:
+   Sequence:
+      // STEP 1: INITIALIZE ATMOSPHERIC LIGHTING & HDR SKY
+      PrintString("MainGameMap: Initializing Sun & Atmospheric Lighting...");
+      AtmosphericLightingRef = SpawnActor(BP_AtmosphericLightingSetup, FVector::ZeroVector);
+
+      // STEP 2: BUILD HIGHWAY CORRIDOR WITH PM_ASPHALT
+      PrintString("MainGameMap: Generating 7.5km Highway Circuit Corridor...");
+      HighwayGeneratorRef = SpawnActor(BP_HighwayGenerator, FVector::ZeroVector);
+      If (HighwayGeneratorRef):
+         HighwayGeneratorRef->TotalHighwayLength = 750000.0f;
+         HighwayGeneratorRef->ConstructHighwayGrid();
+
+      // STEP 3: CONFIGURE STARTING GRID & SPAWN VEHICLE
+      PrintString("MainGameMap: Placing 8-Slot Staggered Start Grid & Spawning Player Vehicle...");
+      SpawnActor(BP_HighwayStartGrid, FVector::ZeroVector);
+      VehicleSpawnerRef = SpawnActor(BP_VehicleSpawner, FVector(1000.0f, 662.5f, 38.0f));
+      If (VehicleSpawnerRef):
+         VehicleSpawnerRef->SpawnSelectedVehicle();
+
+      // STEP 4: PLACE RACE START LINE TRIGGER
+      PrintString("MainGameMap: Initializing Start Line & 5-Light Countdown Gantry...");
+      StartLineTriggerRef = SpawnActor(BP_StartLineTrigger, FVector(1000.0f, 0.0f, 0.0f));
+
+      // STEP 5: PLACE 4 SECTOR CHECKPOINT TRIGGERS
+      PrintString("MainGameMap: Placing 4 Sector Split Timing Checkpoints...");
+      SetupSectorCheckpoints();
+
+      // STEP 6: PLACE FINISH LINE TRIGGER
+      PrintString("MainGameMap: Placing Checkered Finish Line at X = 7.5 KM...");
+      FinishLineTriggerRef = SpawnActor(BP_FinishLineTrigger, FVector(750000.0f, 0.0f, 0.0f));
+
+      // STEP 7: PLACE RECOVERY ZONE & RECOVERY WATCHDOG
+      PrintString("MainGameMap: Placing Recovery Zone & Stuck Watchdog...");
+      RecoveryZoneRef = SpawnActor(BP_RecoveryZone, FVector(375000.0f, 0.0f, 0.0f));
+      RecoveryHandlerRef = SpawnActor(BP_VehicleRecoveryHandler, FVector::ZeroVector);
+
+--------------------------------------------------------------------------------
+3. CHECKPOINT PLACEMENT FUNCTION:
+--------------------------------------------------------------------------------
+Function SetupSectorCheckpoints():
+   CheckpointTriggers.Empty();
+
+   // Sector 1: 1.5 km (150,000 uu)
+   ABP_CheckpointTrigger* CP1 = SpawnActor(BP_CheckpointTrigger, FVector(150000.0f, 0.0f, 0.0f));
+   CP1->CheckpointIndex = 1;
+   CP1->CheckpointName = "SECTOR 1 SPLIT // 1.5 KM";
+   CP1->TrackDistanceKm = 1.5f;
+   CP1->TargetSectorTime = 22.0f;
+   CheckpointTriggers.Add(CP1);
+
+   // Sector 2: 3.0 km (300,000 uu)
+   ABP_CheckpointTrigger* CP2 = SpawnActor(BP_CheckpointTrigger, FVector(300000.0f, 0.0f, 0.0f));
+   CP2->CheckpointIndex = 2;
+   CP2->CheckpointName = "SECTOR 2 SPLIT // 3.0 KM";
+   CP2->TrackDistanceKm = 3.0f;
+   CP2->TargetSectorTime = 44.0f;
+   CheckpointTriggers.Add(CP2);
+
+   // Sector 3: 4.5 km (450,000 uu)
+   ABP_CheckpointTrigger* CP3 = SpawnActor(BP_CheckpointTrigger, FVector(450000.0f, 0.0f, 0.0f));
+   CP3->CheckpointIndex = 3;
+   CP3->CheckpointName = "SECTOR 3 SPLIT // 4.5 KM";
+   CP3->TrackDistanceKm = 4.5f;
+   CP3->TargetSectorTime = 66.0f;
+   CheckpointTriggers.Add(CP3);
+
+   // Sector 4: 6.0 km (600,000 uu)
+   ABP_CheckpointTrigger* CP4 = SpawnActor(BP_CheckpointTrigger, FVector(600000.0f, 0.0f, 0.0f));
+   CP4->CheckpointIndex = 4;
+   CP4->CheckpointName = "SECTOR 4 SPLIT // 6.0 KM";
+   CP4->TrackDistanceKm = 6.0f;
+   CP4->TargetSectorTime = 88.0f;
+   CheckpointTriggers.Add(CP4);
+
+--------------------------------------------------------------------------------
+4. RUN-TIME TICK & TELEMETRY MONITORING:
+--------------------------------------------------------------------------------
+Event Tick(DeltaTime):
+   APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+   If (!IsValid(PlayerPawn)) Return;
+
+   FVector Loc = PlayerPawn->GetActorLocation();
+   CurrentPlayerKilometer = FMath::Clamp(Loc.X / 100000.0f, 0.0f, TotalTrackDistanceKm);
+
+   // Update GameMode stopwatch reference
+   AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+   If (GM):
+      ElapsedRaceTime = GM->GetElapsedTime();
+================================================================================
+*/

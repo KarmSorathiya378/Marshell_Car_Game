@@ -1,0 +1,288 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_VelocityHUD"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/UMG.UserWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_VelocityHUD
+Asset Path: /Game/Blueprints/UI/BP_VelocityHUD
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Integration: ABaseCar, ATrackSupercar, AHypercar, AVelocityPlayerController, AVELOCITYXGameMode
+Author: UI Designer (Nimbus)
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |
+  |-- [TopCenterCluster] (VerticalBox)
+  |     Anchors: Top-Center (Min: 0.5,0, Max: 0.5,0) | Alignment: (0.5, 0)
+  |     Position: X: 0, Y: 30 | Size: X: 520, Y: 110
+  |     Z-Order: 5
+  |     |-- [TimerCard] (Border)
+  |     |     Background: SlateColor(0.02, 0.04, 0.07, 0.75) | Border: 1px Cyan
+  |     |     Padding: (24, 8, 24, 8)
+  |     |     |-- [TimerLayout] (HorizontalBox)
+  |     |           |-- [Txt_TimerLabel] (TextBlock, Text: "RACE TIME", Font: Rajdhani-Bold, Size 13, Color: Cyan)
+  |     |           |-- [Spacer_T1] (Spacer, Size: 1.0 Fill)
+  |     |           |-- [Txt_RaceTimer] (TextBlock)
+  |     |                 Text: "00:00.000"
+  |     |                 Font: Orbitron-Black / Monospaced, Size 28, Color: Pure White
+  |     |-- [LapDeltaBox] (HorizontalBox, Margin: (0, 4, 0, 0))
+  |           |-- [Txt_LapRecordLabel] (TextBlock, Text: "CAR BEST: ", Font: Rajdhani-Medium, Size 13, Color: Gray)
+  |           |-- [Txt_LapRecordTime] (TextBlock, Text: "01:14.382", Font: Rajdhani-Bold, Size 13, Color: Gold)
+  |           |-- [Spacer_T2] (Spacer, Size: 1.0 Fill)
+  |           |-- [Txt_Delta] (TextBlock, Text: "-0.24s", Font: Rajdhani-Bold, Size 13, Color: Neon Green)
+  |
+  |-- [TopRightCluster_Minimap] (CanvasPanel)
+  |     Anchors: Top-Right (Min: 1,0, Max: 1,0) | Alignment: (1, 0)
+  |     Position: X: -50, Y: 40 | Size: X: 260, Y: 260
+  |     Z-Order: 5
+  |     |-- [MinimapImage] (Image)
+  |     |     Position: (0, 0), Size: 260 x 260
+  |     |     Brush: Material'/Game/Materials/UI/M_UI_Minimap'
+  |     |-- [Txt_RadarRange] (TextBlock)
+  |     |     Position: (130, 235), Alignment: (0.5, 0)
+  |     |     Text: "250M RADAR" | Font: Rajdhani-Bold, Size 11, Color: (0.5, 0.7, 0.9, 0.7)
+  |     |-- [CompassBadge] (TextBlock)
+  |           Position: (130, 8), Alignment: (0.5, 0)
+  |           Text: "N" | Font: Rajdhani-Bold, Size 14, Color: Cyan
+  |
+  |-- [TopLeftCluster_CameraAndStatus] (HorizontalBox)
+  |     Anchors: Top-Left (Min: 0,0, Max: 0,0) | Alignment: (0, 0)
+  |     Position: X: 50, Y: 40 | Size: X: 540, Y: 60
+  |     Z-Order: 5
+  |     |-- [CameraBadgeBorder] (Border)
+  |     |     Background: SlateColor(0.04, 0.06, 0.09, 0.8) | Border: 1px Cyan
+  |     |     Padding: (12, 6, 12, 6)
+  |     |     |-- [CameraContent] (HorizontalBox)
+  |     |           |-- [Icon_Cam] (Image, Size: 18 x 18, Color: Cyan)
+  |     |           |-- [Txt_CameraName] (TextBlock, Text: "CAM: CHASE 1", Font: Rajdhani-Bold, Size 14, Color: White)
+  |     |-- [Spacer_Cam] (Spacer, Size: 12)
+  |     |-- [HeadlightBadgeBorder] (Border)
+  |     |     Background: SlateColor(0.04, 0.06, 0.09, 0.8)
+  |     |     Padding: (12, 6, 12, 6)
+  |     |     |-- [Txt_Headlight] (TextBlock, Text: "BEAM: ON", Font: Rajdhani-Bold, Size 14, Color: Neon Green)
+  |     |-- [Spacer_Model] (Spacer, Size: 12)
+  |     |-- [CarModelBadgeBorder] (Border)
+  |           Background: SlateColor(0.04, 0.06, 0.09, 0.8)
+  |           Padding: (12, 6, 12, 6)
+  |           |-- [Txt_ModelName] (TextBlock, Text: "APEX GT-1", Font: Syncopate-Bold, Size 13, Color: Cyan)
+  |
+  |-- [SpecialVehicleAbilityCluster] (CanvasPanel)
+  |     Anchors: Bottom-Center (Min: 0.5,1, Max: 0.5,1) | Alignment: (0.5, 1)
+  |     Position: X: 0, Y: -50 | Size: X: 480, Y: 80
+  |     Z-Order: 8
+  |     |
+  |     |-- [HypercarBoostBox] (VerticalBox) -> Visibility: Visible when Hypercar
+  |     |     Position: (0, 0), Size: 480 x 70
+  |     |     |-- [BoostHeader] (HorizontalBox)
+  |     |     |     |-- [Txt_BoostLabel] (TextBlock, Text: "HYBRID BOOST / KERS CHARGE", Font: Rajdhani-Bold, Size 13, Color: Cyan)
+  |     |     |     |-- [Spacer_BH] (Spacer, Size: 1.0 Fill)
+  |     |     |     |-- [Txt_BoostStatus] (TextBlock, Text: "READY [ACTIVE]", Font: Rajdhani-Bold, Size 13, Color: (0.0, 1.0, 0.5, 1.0))
+  |     |     |-- [Bar_HybridBoost] (ProgressBar, Percent: 1.0, FillColor: (0.0, 0.9, 1.0, 1.0), Size: 480 x 14)
+  |     |
+  |     |-- [TrackSupercarDRSBox] (HorizontalBox) -> Visibility: Visible when TrackSupercar
+  |           Position: (0, 10), Size: 480 x 50
+  |           Alignment: Center
+  |           |-- [Badge_DRS] (Border, Background: SlateColor(0.0, 0.8, 0.4, 0.85), Padding: (20, 6, 20, 6))
+  |                 |-- [Txt_DRS] (TextBlock, Text: "DRS ACTIVE // WING FLATTENED", Font: Syncopate-Bold, Size 16, Color: White)
+  |
+  |-- [CenterWarningHUD] (VerticalBox)
+  |     Anchors: Center (Min: 0.5,0.5, Max: 0.5,0.5) | Alignment: (0.5, 0.5)
+  |     Position: X: 0, Y: -80 | Size: X: 500, Y: 90
+  |     Visibility: Collapsed
+  |     Z-Order: 15
+  |     |-- [WarningBorder] (Border)
+  |           Background: SlateColor(0.8, 0.05, 0.05, 0.85) | Border: 2px Pure White
+  |           Padding: (20, 10, 20, 10)
+  |           |-- [Txt_Warning] (TextBlock, Text: "! OVERHEAT / COLLISION WARNING !", Font: Syncopate-Bold, Size 18, Color: White)
+  |
+  |-- [BottomRightMainCluster] (CanvasPanel)
+        Anchors: Bottom-Right (Min: 1,1, Max: 1,1) | Alignment: (1, 1)
+        Position: X: -60, Y: -40 | Size: X: 540, Y: 440
+        Z-Order: 10
+        |
+        |-- [SpeedometerDialImage] (Image)
+        |     Position: X: 60, Y: 20 | Size: 440 x 440
+        |     Brush: Material'/Game/Materials/UI/M_UI_SpeedometerDial'
+        |
+        |-- [GearIndicatorBox] (Overlay)
+        |     Position: X: 230, Y: 120 | Size: 100 x 120
+        |     |-- [GearBackgroundCircle] (Border, Background: SlateColor(0.02, 0.04, 0.07, 0.9), Border: 2px Cyan)
+        |     |-- [Txt_Gear] (TextBlock)
+        |           Text: "4"
+        |           Font: Syncopate-Bold / Italic, Size 64, Color: Pure White
+        |           Alignment: Center
+        |     |-- [Txt_GearLabel] (TextBlock)
+        |           Text: "GEAR"
+        |           Font: Rajdhani-Bold, Size 11, Color: Cyan
+        |           Position: Y: 96, Alignment: Center
+        |
+        |-- [DigitalSpeedBox] (VerticalBox)
+        |     Position: X: 160, Y: 245 | Size: X: 240, Y: 110
+        |     |-- [Txt_DigitalSpeed] (TextBlock)
+        |     |     Text: "248"
+        |     |     Font: Orbitron-Black, Size 68, Color: Pure White
+        |     |     ShadowOffset: (2, 2), ShadowColor: (0, 0.8, 1, 0.5)
+        |     |     Alignment: Center
+        |     |-- [Txt_SpeedUnit] (TextBlock)
+        |           Text: "KM / H"
+        |           Font: Rajdhani-Bold, Size 16, Color: Cyan
+        |           Alignment: Center
+        |
+        |-- [TachometerBarContainer] (VerticalBox)
+        |     Position: X: 0, Y: 370 | Size: X: 540, Y: 60
+        |     |-- [RPMBarImage] (Image)
+        |     |     Size: 540 x 36
+        |     |     Brush: Material'/Game/Materials/UI/M_UI_RPMBar'
+        |     |-- [RPMLabelsRow] (HorizontalBox)
+        |           |-- [Txt_RPM_0] (TextBlock, Text: "0k", Font: Rajdhani-Medium, Size 11, Color: Gray)
+        |           |-- [Spacer_R1] (Spacer, Size: 1.0 Fill)
+        |           |-- [Txt_RPM_3] (TextBlock, Text: "3k", Font: Rajdhani-Medium, Size 11, Color: Gray)
+        |           |-- [Spacer_R2] (Spacer, Size: 1.0 Fill)
+        |           |-- [Txt_RPM_6] (TextBlock, Text: "6k", Font: Rajdhani-Medium, Size 11, Color: Gray)
+        |           |-- [Spacer_R3] (Spacer, Size: 1.0 Fill)
+        |           |-- [Txt_RPM_Redline] (TextBlock, Text: "REDLINE 9k", Font: Rajdhani-Bold, Size 11, Color: Crimson)
+        |
+        |-- [TelemetryPedalCluster] (HorizontalBox)
+              Position: X: 40, Y: 200 | Size: X: 48, Y: 140
+              |-- [Bar_Throttle] (ProgressBar)
+              |     Size: 18 x 140 | Orientation: Vertical
+              |     Percent: 0.95 | FillColor: Neon Green
+              |-- [Spacer_Pedal] (Spacer, Size: 8)
+              |-- [Bar_Brake] (ProgressBar)
+                    Size: 18 x 140 | Orientation: Vertical
+                    Percent: 0.0 | FillColor: Crimson
+
+--------------------------------------------------------------------------------
+2. ANIMATION TIMELINE REGISTRY:
+--------------------------------------------------------------------------------
+A. [Anim_GearShift] (Duration: 0.18s):
+   - Track: GearIndicatorBox.RenderScale (Key 0.0s: (1.25, 1.25) -> Key 0.18s: (1.0, 1.0))
+   - Track: Txt_Gear.ColorAndOpacity (Key 0.0s: Pure Cyan/Glow -> Key 0.18s: White)
+
+B. [Anim_RedlineWarningPulse] (Duration: 0.1s, Looping):
+   - Track: RPMBarImage.RenderOpacity (Key 0.0s: 1.0 -> Key 0.05s: 0.4 -> Key 0.1s: 1.0)
+
+C. [Anim_WarningFlash] (Duration: 0.5s, Looping):
+   - Track: CenterWarningHUD.RenderOpacity (Key 0.0s: 0.0 -> Key 0.25s: 1.0 -> Key 0.5s: 0.0)
+
+--------------------------------------------------------------------------------
+3. SOUND BINDINGS:
+--------------------------------------------------------------------------------
+   - SFX_ShiftChime: SoundCue'/Game/Audio/UI/SC_UI_GearShift'
+   - SFX_RedlineBeep: SoundCue'/Game/Audio/UI/SC_UI_RedlineAlarm'
+   - SFX_WarningStrobe: SoundCue'/Game/Audio/UI/SC_UI_WarningAlert'
+   - SFX_DRS_Deploy: SoundCue'/Game/Audio/Vehicles/SC_Aero_DRS_Deploy'
+   - SFX_BoostEngage: SoundCue'/Game/Audio/Vehicles/SC_HybridBoostEngage'
+
+--------------------------------------------------------------------------------
+4. C++ METHOD CALLS & EVENT GRAPH:
+--------------------------------------------------------------------------------
+
+Variables:
+   - ControlledCar: ABaseCar
+   - HypercarRef: AHypercar
+   - TrackSupercarRef: ATrackSupercar
+   - VelocityPC: AVelocityPlayerController
+   - GameModeRef: AVELOCITYXGameMode
+   - DynMat_Speedometer: UMaterialInstanceDynamic
+   - DynMat_RPM: UMaterialInstanceDynamic
+   - DynMat_Minimap: UMaterialInstanceDynamic
+   - PreviousGear: int = 1
+   - MaxSpeedRef: float = 420.0f
+   - MaxRPMRef: float = 9000.0f
+
+Event Construct:
+   1. VelocityPC = Cast<AVelocityPlayerController>(GetPlayerController(0))
+   2. GameModeRef = Cast<AVELOCITYXGameMode>(GetWorld()->GetAuthGameMode())
+   3. Create Dynamic Material Instances for Speedometer, RPM, and Minimap
+   4. Resolve Controlled Car:
+      - ControlledCar = VelocityPC->GetControlledCar() // or Cast<ABaseCar>(VelocityPC->GetPawn())
+      - HypercarRef = Cast<AHypercar>(ControlledCar)
+      - TrackSupercarRef = Cast<ATrackSupercar>(ControlledCar)
+      - If (IsValid(HypercarRef)):
+          HypercarBoostBox->SetVisibility(ESlateVisibility::Visible)
+          TrackSupercarDRSBox->SetVisibility(ESlateVisibility::Collapsed)
+      - Else If (IsValid(TrackSupercarRef)):
+          HypercarBoostBox->SetVisibility(ESlateVisibility::Collapsed)
+          TrackSupercarDRSBox->SetVisibility(ESlateVisibility::Visible)
+      - Else:
+          HypercarBoostBox->SetVisibility(ESlateVisibility::Collapsed)
+          TrackSupercarDRSBox->SetVisibility(ESlateVisibility::Collapsed)
+      - If (IsValid(ControlledCar)):
+          Txt_ModelName->SetText(ControlledCar->GetPhysicsSettings().VehicleName)
+
+Event Tick (DeltaTime):
+   If (!IsValid(ControlledCar)):
+      ControlledCar = VelocityPC ? VelocityPC->GetControlledCar() : nullptr;
+      Return;
+
+   // 1. Speed Telemetry (ABaseCar::GetSpeedKPH / GetSpeedMPH)
+   SpeedKPH = ControlledCar->GetSpeedKPH();
+   SpeedRatio = FMath::Clamp(SpeedKPH / MaxSpeedRef, 0.0f, 1.0f);
+   DynMat_Speedometer->SetScalarParameterValue("CurrentSpeedRatio", SpeedRatio);
+   Txt_DigitalSpeed->SetText(RoundToInt(SpeedKPH));
+
+   // 2. RPM & Redline (ABaseCar::GetEngineRPM)
+   RPM = ControlledCar->GetEngineRPM();
+   RPMRatio = FMath::Clamp(RPM / MaxRPMRef, 0.0f, 1.0f);
+   DynMat_RPM->SetScalarParameterValue("CurrentRPMRatio", RPMRatio);
+   RedlineRPM = ControlledCar->GetPhysicsSettings().Engine.RedlineRPM;
+   If (RPM >= RedlineRPM):
+       DynMat_RPM->SetScalarParameterValue("IsRedlineActive", 1.0f);
+       If (!IsAnimationPlaying(Anim_RedlineWarningPulse)):
+           Play Animation (Anim_RedlineWarningPulse, NumLoops=0);
+           Play Sound 2D (SFX_RedlineBeep);
+   Else:
+       DynMat_RPM->SetScalarParameterValue("IsRedlineActive", 0.0f);
+       Stop Animation (Anim_RedlineWarningPulse);
+
+   // 3. Gear (ABaseCar::GetCurrentGear)
+   Gear = ControlledCar->GetCurrentGear();
+   If (Gear != PreviousGear):
+       Play Animation (Anim_GearShift);
+       Play Sound 2D (SFX_ShiftChime);
+       PreviousGear = Gear;
+   Switch (Gear):
+       Case -1: Txt_Gear->SetText("R");
+       Case 0:  Txt_Gear->SetText("N");
+       Default: Txt_Gear->SetText(FString::FromInt(Gear));
+
+   // 4. Lap / Race Timer (AVELOCITYXGameMode::GetElapsedTime)
+   If (IsValid(GameModeRef)):
+       Elapsed = GameModeRef->GetElapsedTime();
+       Format Time MM:SS.mmm -> Txt_RaceTimer->SetText;
+
+   // 5. Special Abilities (Hypercar Boost / TrackSupercar DRS)
+   If (IsValid(HypercarRef)):
+       BoostCharge = HypercarRef->GetBoostChargePercent(); // 0.0 to 1.0
+       bBoostActive = HypercarRef->IsHybridBoostActive();
+       Bar_HybridBoost->SetPercent(BoostCharge);
+       Txt_BoostStatus->SetText(bBoostActive ? "BOOST DEPLOYED" : (BoostCharge >= 1.0 ? "100% READY" : "CHARGING..."));
+   Else If (IsValid(TrackSupercarRef)):
+       bDRS = TrackSupercarRef->IsDRSActive();
+       TrackSupercarDRSBox->SetVisibility(bDRS ? ESlateVisibility::Visible : ESlateVisibility::HitTestInvisible);
+       Badge_DRS->SetBrushColor(bDRS ? NeonGreen : Gray);
+
+   // 6. Camera & Headlights
+   CamIdx = VelocityPC->GetCameraIndex();
+   Txt_CameraName->SetText(CamIdx == 0 ? "CAM: CHASE" : (CamIdx == 1 ? "CAM: COCKPIT" : "CAM: HOOD"));
+   bLights = ControlledCar->AreHeadlightsOn();
+   Txt_Headlight->SetText(bLights ? "BEAM: ON" : "BEAM: OFF");
+   Txt_Headlight->SetColorAndOpacity(bLights ? NeonGreen : Gray);
+
+   // 7. Telemetry Pedal Bars
+   Bar_Throttle->SetPercent(ControlledCar->GetTelemetry().ThrottleInput);
+   Bar_Brake->SetPercent(ControlledCar->GetTelemetry().BrakeInput);
+================================================================================
+*/

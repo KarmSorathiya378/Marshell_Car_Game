@@ -1,0 +1,86 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_RaceCheckpointTrigger"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_RaceCheckpointTrigger
+Asset Path: /Game/Blueprints/Highway/BP_RaceCheckpointTrigger
+Target Parent: AActor
+Description:
+   Full-span highway checkpoint and split-timing trigger volume.
+   Detects passing vehicles, measures trap speed, and dispatches split events
+   to AVELOCITYXGameMode via BPI_RaceProgression and Event Dispatcher.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── TriggerBox (BoxComponent)
+  │     - BoxExtent: (100.0, 1700.0, 450.0) cm (Spans all lanes, 9m height)
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │
+  ├── OverheadLaserBar (StaticMeshComponent)
+  │     - Mesh: SM_Timing_Gantry_Bar (34m span)
+  │     - Material: M_Guardrail_Galvanized_Master
+  │
+  └── LaserBeamFX (ParticleSystemComponent / NiagaraComponent)
+        - BeamEmitter: Spans road at Z = 150cm (Checkered split laser visual)
+
+--------------------------------------------------------------------------------
+EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- TriggerType (Enum: "StartLine", "Milestone", "FinishLine") = "Milestone"
+- CheckpointIndex (Integer, Editable) = 1 (1 to 10 for 50km course)
+- DistanceAlongTrackKm (Float, Editable) = 5.0 km
+- bHasBeenTriggered (Boolean) = False
+
+--------------------------------------------------------------------------------
+EVENT DISPATCHERS:
+--------------------------------------------------------------------------------
+- EventDispatcher OnCheckpointCrossed(int32 CheckpointIdx, float DistanceKm, float SplitTime, float SpeedKPH)
+
+--------------------------------------------------------------------------------
+EVENT GRAPH LOGIC:
+--------------------------------------------------------------------------------
+Event OnComponentBeginOverlap(OverlappedComp, OtherActor, OtherComp...):
+   AVELOCITYXVehicle* Vehicle = Cast<AVELOCITYXVehicle>(OtherActor);
+   If (!Vehicle) return;
+
+   // Prevent duplicate triggering in multi-wheel collision
+   If (bHasBeenTriggered) return;
+   bHasBeenTriggered = true;
+
+   float CurrentSpeedKPH = Vehicle->GetSpeed(); // cm/s converted to km/h
+   float CurrentSpeedMPH = Vehicle->GetSpeedMPH();
+   float CurrentTime = UGameplayStatics::GetTimeSeconds(GetWorld());
+
+   // Fetch GameMode
+   AVELOCITYXGameMode* GameMode = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+   float SplitTime = GameMode ? GameMode->GetElapsedTime() : CurrentTime;
+
+   // 1. BROADCAST LOCAL EVENT DISPATCHER
+   OnCheckpointCrossed.Broadcast(CheckpointIndex, DistanceAlongTrackKm, SplitTime, CurrentSpeedKPH);
+
+   // 2. DISPATCH TO GAMEMODE INTERFACE
+   If (GameMode && GameMode->GetClass()->ImplementsInterface(UBPI_RaceProgression::StaticClass())):
+      Switch (TriggerType):
+         Case "StartLine":
+            IBPI_RaceProgression::Execute_OnStartLineCrossed(GameMode, Vehicle, CurrentTime);
+            GameMode->StartTimer();
+            break;
+         Case "Milestone":
+            IBPI_RaceProgression::Execute_OnCheckpointPassed(GameMode, CheckpointIndex, DistanceAlongTrackKm, SplitTime, CurrentSpeedKPH, CurrentSpeedMPH, Vehicle);
+            break;
+         Case "FinishLine":
+            IBPI_RaceProgression::Execute_OnFinishLineCrossed(GameMode, Vehicle, SplitTime, CurrentSpeedKPH);
+            GameMode->PauseTimer();
+            GameMode->SetGameState(EGameState::GameOver);
+            break;
+================================================================================
+*/

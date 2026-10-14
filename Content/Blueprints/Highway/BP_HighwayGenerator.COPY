@@ -1,0 +1,163 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_HighwayGenerator"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+   ImplementedInterfaces(0)=(Interface=/Game/Blueprints/Highway/BPI_HighwaySplineQuery.BPI_HighwaySplineQuery_C)
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_HighwayGenerator
+Asset Path: /Game/Blueprints/Highway/BP_HighwayGenerator
+Target Parent: AActor
+Implemented Interfaces: BPI_HighwaySplineQuery
+Description:
+   Procedural 50km+ straight multi-lane highway generator.
+   Constructs 6-lane dual-carriageway with center median, shoulders, barriers,
+   and markings using optimized Hierarchical Instanced Static Meshes (HISM).
+   Implements BPI_HighwaySplineQuery for instant AI waypoint and lane tracking.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── HISM_RoadDeck (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Highway_Slab_200m (20000 x 3200 x 50 cm)
+  │     - Material: M_Asphalt_Master
+  │     - PhysicalMaterial: PM_Asphalt (Friction 1.12, Multiply)
+  │     - CollisionProfile: "BlockAll" (Supports ECC_Vehicle cleanly)
+  │
+  ├── HISM_LaneMarkings_Dashed (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Marking_Dashed_3m (300 x 15 x 0.5 cm)
+  │     - Material: MI_LaneMarking_Dashed_White
+  │     - Collision: NoCollision
+  │
+  ├── HISM_LaneMarkings_Solid (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Marking_Solid_200m (20000 x 20 x 0.5 cm)
+  │     - Material: MI_LaneMarking_Solid_White
+  │     - Collision: NoCollision
+  │
+  ├── HISM_Median_Markings_Yellow (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Marking_Solid_200m (20000 x 15 x 0.5 cm)
+  │     - Material: MI_LaneMarking_Solid_Yellow
+  │     - Collision: NoCollision
+  │
+  ├── HISM_ConcreteMedianBarrier (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Barrier_NewJersey_4m (400 x 60 x 85 cm)
+  │     - Material: M_Concrete_Barrier_Master
+  │     - PhysicalMaterial: PM_Barrier (Friction 0.22, Min)
+  │     - CollisionProfile: "BlockAll"
+  │
+  ├── HISM_Guardrail_Left (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Guardrail_WBeam_4m (400 x 30 x 75 cm)
+  │     - Material: M_Guardrail_Galvanized_Master
+  │     - PhysicalMaterial: PM_Barrier
+  │     - CollisionProfile: "BlockAll"
+  │
+  └── HISM_Guardrail_Right (HierarchicalInstancedStaticMeshComponent)
+        - StaticMesh: SM_Guardrail_WBeam_4m (400 x 30 x 75 cm)
+        - Material: M_Guardrail_Galvanized_Master
+        - PhysicalMaterial: PM_Barrier
+        - CollisionProfile: "BlockAll"
+
+--------------------------------------------------------------------------------
+EXPOSED PARAMETERS (BLUEPRINT VARIABLES):
+--------------------------------------------------------------------------------
+1. HIGHWAY DIMENSIONS:
+   - TotalHighwayLength (Float, Editable) = 5000000.0 cm (50.0 km)
+   - LanesPerDirection (Integer, Editable) = 3 (Total 6 lanes)
+   - LaneWidth (Float, Editable) = 375.0 cm (3.75 m)
+   - LeftShoulderWidth (Float, Editable) = 150.0 cm (1.5 m)
+   - RightShoulderWidth (Float, Editable) = 300.0 cm (3.0 m)
+   - MedianWidth (Float, Editable) = 200.0 cm (2.0 m)
+   - SegmentChunkLength (Float, Editable) = 20000.0 cm (200.0 m)
+
+2. ROAD MARKING SPECIFICATIONS:
+   - DashLength (Float, Editable) = 300.0 cm (3.0 m)
+   - DashGap (Float, Editable) = 900.0 cm (9.0 m)
+   - DashCycleLength = 1200.0 cm (12.0 m)
+
+3. HIGH-VELOCITY STREAMING TUNING (250+ MPH / 400+ KPH):
+   - ActiveStreamingRadius (Float, Editable) = 250000.0 cm (2.5 km ahead/behind)
+   - RoadDeckMaxDrawDistance (Float) = 400000.0 cm (4.0 km)
+   - BarrierMaxDrawDistance (Float) = 150000.0 cm (1.5 km)
+   - LaneMarkingMaxDrawDistance (Float) = 30000.0 cm (300 m)
+
+--------------------------------------------------------------------------------
+BPI_HighwaySplineQuery INTERFACE IMPLEMENTATION:
+--------------------------------------------------------------------------------
+Function GetLaneCenterY(int32 LaneIndex, bool bNorthbound, float& OutCenterY):
+   // Lane 1 = Inner (nearest median), Lane 2 = Mid, Lane 3 = Outer
+   float OffsetFromMedian = (LaneIndex - 0.5f) * LaneWidth;
+   float BaseY = (MedianWidth * 0.5f) + OffsetFromMedian;
+   OutCenterY = bNorthbound ? BaseY : -BaseY;
+
+Function GetLaneTransformAtDistance(int32 LaneIdx, float DistX, bool bNorthbound, FTransform& OutTransform, bool& bIsValid):
+   If (DistX < 0.0f || DistX > TotalHighwayLength):
+      bIsValid = false;
+      return;
+
+   float LaneY = 0.0f;
+   GetLaneCenterY(LaneIdx, bNorthbound, LaneY);
+
+   FVector Loc = FVector(DistX, LaneY, 0.0f);
+   FRotator Rot = bNorthbound ? FRotator::ZeroRotator : FRotator(0.0f, 180.0f, 0.0f);
+   OutTransform = FTransform(Rot, Loc, FVector::OneVector);
+   bIsValid = true;
+
+Function GetNearestLane(FVector WorldLoc, int32& OutLaneIdx, bool& bOutNorthbound, float& OutDistX, float& OutLateralDev):
+   bOutNorthbound = (WorldLoc.Y >= 0.0f);
+   OutDistX = FMath::Clamp(WorldLoc.X, 0.0f, TotalHighwayLength);
+
+   float MinDelta = 999999.0f;
+   int32 BestLane = 2;
+
+   FOR i from 1 to LanesPerDirection:
+      float CenterY = 0.0f;
+      GetLaneCenterY(i, bOutNorthbound, CenterY);
+      float Delta = FMath::Abs(WorldLoc.Y - CenterY);
+      If (Delta < MinDelta):
+         MinDelta = Delta;
+         BestLane = i;
+
+   OutLaneIdx = BestLane;
+   float TargetY = 0.0f;
+   GetLaneCenterY(BestLane, bOutNorthbound, TargetY);
+   OutLateralDev = WorldLoc.Y - TargetY;
+
+Function GetLaneSpeedLimit(int32 LaneIdx, float& OutMinSpeedKPH, float& OutMaxSpeedKPH):
+   Switch (LaneIdx):
+      Case 1: OutMinSpeedKPH = 140.0f; OutMaxSpeedKPH = 180.0f; break; // Fast / Overtake
+      Case 2: OutMinSpeedKPH = 110.0f; OutMaxSpeedKPH = 135.0f; break; // Cruising
+      Case 3: OutMinSpeedKPH = 80.0f;  OutMaxSpeedKPH = 100.0f; break; // Heavy / Slow
+      Default: OutMinSpeedKPH = 100.0f; OutMaxSpeedKPH = 130.0f; break;
+
+--------------------------------------------------------------------------------
+CONSTRUCTION SCRIPT:
+--------------------------------------------------------------------------------
+Function ConstructHighwayGrid():
+   TotalChunks = CeilToInt(TotalHighwayLength / SegmentChunkLength); // 250 chunks
+   OneDirectionWidth = LeftShoulderWidth + (LanesPerDirection * LaneWidth) + RightShoulderWidth;
+   TotalRoadWidth = (OneDirectionWidth * 2.0f) + MedianWidth; // 3350 cm
+
+   FOR ChunkIdx from 0 to TotalChunks - 1:
+      float StartX = ChunkIdx * SegmentChunkLength;
+      FVector Center = FVector(StartX + (SegmentChunkLength * 0.5f), 0.0f, 0.0f);
+
+      // Road Slab
+      HISM_RoadDeck->AddInstance(FTransform(Center));
+
+      // Median Barrier & Outer Guardrails
+      BarrierCount = SegmentChunkLength / 400.0f; // 50 per chunk
+      FOR bIdx from 0 to BarrierCount - 1:
+         float BarrierX = StartX + (bIdx * 400.0f) + 200.0f;
+         HISM_ConcreteMedianBarrier->AddInstance(FTransform(FVector(BarrierX, 0.0f, 0.0f)));
+         HISM_Guardrail_Left->AddInstance(FTransform(FVector(BarrierX, -(TotalRoadWidth * 0.5f), 0.0f)));
+         HISM_Guardrail_Right->AddInstance(FTransform(FVector(BarrierX, (TotalRoadWidth * 0.5f), 0.0f)));
+
+      // Solid markings & Dashed lane lines
+      // (Constructed with PM_Asphalt surface bindings)
+================================================================================
+*/

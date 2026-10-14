@@ -1,0 +1,88 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VelocityPlayerController"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/VELOCITYX.VelocityPlayerController
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_VelocityPlayerController
+Asset Path: /Game/Blueprints/Input/BP_VelocityPlayerController
+Target Parent: AVelocityPlayerController (AVELOCITYXPlayerController)
+Description:
+   Main Player Controller for VELOCITY X:
+   - Full Enhanced Input System Integration with IMC_Driving context
+   - Analog Gamepad controls (Triggers for Throttle/Brake, Stick for Steering)
+   - Dynamic Haptic Vibration on Handbrake and Collision Crashes
+   - 4-Mode Camera Cycling (Chase -> Hood -> Cockpit -> Top)
+   - Car Reset & Un-flip mechanics
+   - Pause Game Menu toggle with bExecuteWhenPaused = true
+   - Optional fine mouse steering assist
+================================================================================
+
+CLASS DEFAULTS CONFIGURATION:
+--------------------------------------------------------------------------------
+- PlayerCameraManagerClass: BP_CameraManager
+- InputConfig: DA_VelocityInputConfig
+- Gamepad Settings:
+    * SteeringDeadzone: 0.05
+    * SteeringSensitivity: 1.0
+    * TriggerDeadzone: 0.02
+    * bEnableGamepadVibration: true
+    * HandbrakeRumbleIntensity: 0.65
+- Mouse Assist:
+    * bEnableMouseSteeringAssist: false
+    * MouseSteeringSensitivity: 0.015
+    * MouseSteeringAutoCenterRate: 4.0
+
+--------------------------------------------------------------------------------
+INPUT ACTIONS MAPPING:
+--------------------------------------------------------------------------------
+- IA_Throttle -> HandleEnhancedThrottle / HandleEnhancedThrottleCompleted
+- IA_Brake    -> HandleEnhancedBrake / HandleEnhancedBrakeCompleted
+- IA_Steer    -> HandleEnhancedSteer / HandleEnhancedSteerCompleted
+- IA_Handbrake-> HandleEnhancedHandbrake / HandleEnhancedHandbrakeCompleted
+- IA_CycleCamera -> CycleCamera
+- IA_ToggleHeadlights -> ToggleHeadlights
+- IA_ResetCar -> ResetCar
+- IA_Pause    -> TogglePause (bExecuteWhenPaused = true)
+- IA_MouseSteer -> HandleEnhancedMouseSteer
+
+--------------------------------------------------------------------------------
+CORE EVENT GRAPH FLOWS:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+    1. Retrieve EnhancedInputLocalPlayerSubsystem from LocalPlayer.
+    2. AddMappingContext(IMC_Driving, Priority 0).
+    3. UpdateCameraManagerReference (link with BP_CameraManager).
+
+Event Tick(DeltaTime):
+    1. ProcessVehicleInputs:
+       - Combine Digital WASD/Arrows and Analog Gamepad Triggers.
+       - Apply Deadzones and interpolate Steering.
+       - Send final inputs to CurrentVehicle->ApplyInput(Throttle, Brake, Steer, Handbrake).
+    2. If Handbrake pressed AND Vehicle Speed > 5 MPH:
+       - PlayHandbrakeHaptics(DeltaTime);
+       - Else StopAllHaptics().
+
+Function ResetCar():
+    1. Get CurrentVehicle.
+    2. Zero out Pitch and Roll, maintain Yaw.
+    3. Lift vehicle Z by 60cm to prevent obstacle clipping.
+    4. Call CurrentVehicle->ResetVehicle() & Clear velocities.
+    5. Call VelocityCameraManager->ResetCamera().
+    6. TriggerCrashHaptics(1.5).
+
+Function TogglePause():
+    1. bPaused = !bPaused.
+    2. SetPause(bPaused).
+    3. If bPaused:
+           SetInputMode(FInputModeGameAndUI), bShowMouseCursor = true.
+       Else:
+           SetInputMode(FInputModeGameOnly), bShowMouseCursor = false.
+    4. Notify GameMode->SetGameState(Paused / Racing).
+================================================================================
+*/

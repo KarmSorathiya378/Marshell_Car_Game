@@ -1,0 +1,83 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_HighwayRecoveryManager"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+   ImplementedInterfaces(0)=(Interface=/Game/Blueprints/Highway/BPI_HighwayRecovery.BPI_HighwayRecovery_C)
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_HighwayRecoveryManager
+Asset Path: /Game/Blueprints/Highway/BP_HighwayRecoveryManager
+Target Parent: AActor
+Description:
+   Computes instant, physically-valid recovery transforms for flipped, crashed,
+   or out-of-bounds vehicles anywhere along the 50km straightaway.
+================================================================================
+
+EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- HighwayLength (Float) = 5000000.0 cm
+- LaneWidth (Float) = 375.0 cm
+- MedianWidth (Float) = 200.0 cm
+- OuterRoadHalfWidth (Float) = 1675.0 cm (Guardrail edge)
+- SafeSpawnElevationZ (Float) = 35.0 cm (Settles wheels on road surface without snag)
+
+--------------------------------------------------------------------------------
+INTERFACE IMPLEMENTATION:
+--------------------------------------------------------------------------------
+Function GetNearestHighwayRecoveryTransform(FVector CrashLoc, bool bPreferSameDirection,
+                                           FTransform& OutTransform, int32& OutLaneIdx, bool& bSuccess):
+   // Clamp X within the 50km track length
+   float SafeX = FMath::Clamp(CrashLoc.X, 500.0f, HighwayLength - 500.0f);
+
+   // Determine Carriageway
+   // Y > 0 is Northbound (+X direction); Y < 0 is Southbound (-X direction)
+   bool bNorthbound = (CrashLoc.Y >= 0.0f);
+   float TravelHeading = bNorthbound ? 0.0f : 180.0f;
+
+   // Candidate Lane Centers for Northbound:
+   // Lane 1: 287.5 cm, Lane 2: 662.5 cm, Lane 3: 1037.5 cm
+   float NorthLanes[3] = { 287.5f, 662.5f, 1037.5f };
+   float SouthLanes[3] = { -287.5f, -662.5f, -1037.5f };
+
+   float ClosestDist = 999999.0f;
+   float BestY = NorthLanes[1]; // default to middle lane
+   int32 BestLane = 2;
+
+   If (bNorthbound):
+      FOR i from 0 to 2:
+         float Dist = FMath::Abs(CrashLoc.Y - NorthLanes[i]);
+         If (Dist < ClosestDist):
+            ClosestDist = Dist;
+            BestY = NorthLanes[i];
+            BestLane = i + 1;
+   Else:
+      FOR i from 0 to 2:
+         float Dist = FMath::Abs(CrashLoc.Y - SouthLanes[i]);
+         If (Dist < ClosestDist):
+            ClosestDist = Dist;
+            BestY = SouthLanes[i];
+            BestLane = i + 1;
+
+   FVector SafeLocation = FVector(SafeX, BestY, SafeSpawnElevationZ);
+   FRotator SafeRotation = FRotator(0.0f, TravelHeading, 0.0f);
+
+   OutTransform.SetLocation(SafeLocation);
+   OutTransform.SetRotation(SafeRotation.Quaternion());
+   OutTransform.SetScale3D(FVector::OneVector);
+   OutLaneIdx = BestLane;
+   bSuccess = true;
+
+Function IsVehicleOutOfBounds(FVector VehicleLoc, bool& bIsOutOfBounds, float& LateralDistanceOffRoad):
+   float AbsY = FMath::Abs(VehicleLoc.Y);
+   If (AbsY > OuterRoadHalfWidth):
+      bIsOutOfBounds = true;
+      LateralDistanceOffRoad = AbsY - OuterRoadHalfWidth;
+   Else:
+      bIsOutOfBounds = false;
+      LateralDistanceOffRoad = 0.0f;
+================================================================================
+*/

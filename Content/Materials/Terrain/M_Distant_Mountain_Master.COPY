@@ -1,0 +1,33 @@
+Begin Object Class=/Script/Engine.Material Name="M_Distant_Mountain_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Distant_Mountain_Master
+Asset Path: /Game/Materials/Terrain/M_Distant_Mountain_Master
+Target Use: Distant mountain backdrops (5km - 20km distance), ridges, sky silhouettes
+
+ATMOSPHERIC PERSPECTIVE INTEGRATION:
+--------------------------------------------------------------------------------
+1. BASE SHADING:
+   - Param "Mountain_Rock_Color" (LinearColor, Default=(0.32, 0.30, 0.35, 1.0)):
+     Alpine granite peak tone.
+   - Param "Snow_Cap_Color" (LinearColor, Default=(0.92, 0.94, 0.98, 1.0)):
+   - Param "Snow_Altitude_Start" (Scalar, Default=65000.0 cm): 650m elevation.
+
+2. DEPTH HAZE & RAYLEIGH BLEND:
+   - Param "AtmosphereFogBlend" (Scalar, Default=0.85):
+     Blends mountain albedo directly into the Sky Atmosphere aerial perspective
+     using distance from camera (500,000 cm to 2,000,000 cm).
+   - Param "Specular" (Scalar, Default=0.2): Low specular for distant landforms.
+   - Param "Roughness" (Scalar, Default=0.9): Fully rough diffuse scattering.
+================================================================================
+*/

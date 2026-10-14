@@ -1,0 +1,83 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_HighwayStartGrid"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_HighwayStartGrid
+Asset Path: /Game/Blueprints/Highway/BP_HighwayStartGrid
+Target Parent: AActor
+Description:
+   Professional 8-slot staggered starting grid for VELOCITY X.
+   Spawns tagged PlayerStart actors with forward orientation (+X), realistic
+   inter-vehicle spacing (14m), and clearance for high-downforce supercars.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── StartLineGantryMesh (StaticMeshComponent)
+  │     - Mesh: SM_StartGantry_Truss_34m
+  │     - Material: M_Guardrail_Galvanized_Master
+  │     - Location: (0.0, 0.0, 0.0)
+  │
+  ├── StartLights_Red1 (SpotLightComponent)
+  ├── StartLights_Red2 (SpotLightComponent)
+  ├── StartLights_Red3 (SpotLightComponent)
+  ├── StartLights_Red4 (SpotLightComponent)
+  ├── StartLights_Red5 (SpotLightComponent)
+  ├── StartLights_Green (SpotLightComponent)
+  │
+  └── GridSlotVisuals (InstancedStaticMeshComponent)
+        - Mesh: SM_GridBox_Marking (600 x 240 x 0.5 cm)
+        - Material: MI_LaneMarking_Solid_White
+
+--------------------------------------------------------------------------------
+EXPOSED CONFIGURATION:
+--------------------------------------------------------------------------------
+- NumGridSlots (Integer) = 8
+- LongitudinalSpacing (Float) = 1400.0 cm (14.0 m between rows)
+- LaneWidth (Float) = 375.0 cm
+- MedianWidth (Float) = 200.0 cm
+- StartLineX (Float) = 1000.0 cm (10m past Start Gantry)
+- GridSpawnZ (Float) = 35.0 cm (Suspension drop clearance)
+
+--------------------------------------------------------------------------------
+CONSTRUCTION SCRIPT / GRID GENERATION:
+--------------------------------------------------------------------------------
+Function SetupGridPositions():
+   // Northbound lanes (Y > 0)
+   // Lane 1 (Inner fast lane): Y = (MedianWidth * 0.5) + (0.5 * LaneWidth) = 100 + 187.5 = 287.5 cm
+   // Lane 2 (Middle lane):     Y = 100 + (1.5 * 375) = 662.5 cm
+   // Lane 3 (Outer lane):      Y = 100 + (2.5 * 375) = 1037.5 cm
+
+   float LaneCenters[3] = { 287.5f, 662.5f, 1037.5f };
+
+   FOR SlotIdx from 0 to NumGridSlots - 1:
+      // Staggered pattern across Lane 2 and Lane 1:
+      // Pole Position (Slot 0): Lane 2, X = 0
+      // Slot 1: Lane 1, X = -700 cm
+      // Slot 2: Lane 2, X = -1400 cm
+      // Slot 3: Lane 1, X = -2100 cm, etc.
+      int32 LaneChoice = (SlotIdx % 2 == 0) ? 1 : 0; // Alternates Lane 2 and Lane 1
+      float SlotX = StartLineX - (SlotIdx * 700.0f);
+      float SlotY = LaneCenters[LaneChoice];
+      FVector SlotLoc = FVector(SlotX, SlotY, GridSpawnZ);
+      FRotator SlotRot = FRotator(0.0f, 0.0f, 0.0f); // Exactly facing down highway (+X)
+
+      // Add visual white grid box box marking on road surface
+      GridSlotVisuals->AddInstance(FTransform(SlotRot, FVector(SlotX, SlotY, 0.5f), FVector::OneVector));
+
+      // Spawn or Tag PlayerStart
+      APlayerStart* NewStart = SpawnActor(APlayerStart, SlotLoc, SlotRot);
+      FName SlotTagName = *FString::Printf(TEXT("PlayerStart_Slot%d"), SlotIdx + 1);
+      NewStart->Tags.Add(SlotTagName);
+      NewStart->Tags.Add(FName("PlayerStart_Grid"));
+      If (SlotIdx == 0):
+         NewStart->Tags.Add(FName("PlayerStart_PolePosition"));
+================================================================================
+*/

@@ -1,0 +1,108 @@
+Begin Object Class=/Script/Engine.Material Name="M_Asphalt_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+   bUsedWithNanite=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Asphalt_Master
+Asset Path: /Game/Materials/Road/M_Asphalt_Master
+Target Use: Highway road surface (50km corridor), highway shoulders, ramps
+
+PBR SPECIFICATION & PARAMETER REGISTRY:
+--------------------------------------------------------------------------------
+1. BASE COLOR (Albedo):
+   - Param "Asphalt_Base_Tint" (LinearColor, Default=(0.18, 0.18, 0.19, 1.0)):
+     Dark weathered bitumen tone. Reflectance sRGB ~18%.
+   - Param "Aggregate_Tiling" (Scalar, Default=40.0):
+     Tiling frequency for fine gravel aggregate.
+   - Param "Macro_Variation_Tiling" (Scalar, Default=0.0008):
+     Low frequency mottled asphalt patches (oil stains, repaved sections).
+   - Param "Tire_Track_Wear_Intensity" (Scalar, Default=0.65):
+     Darkening in center lane wheel tracks due to rubber deposition.
+
+2. ROUGHNESS:
+   - Param "Dry_Roughness_Min" (Scalar, Default=0.55): Clean stone aggregate peak.
+   - Param "Dry_Roughness_Max" (Scalar, Default=0.88): Weathered bitumen matrix.
+   - Param "Tire_Track_Polish" (Scalar, Default=-0.18):
+     Friction polish lowering roughness in high-traffic wheel paths.
+   - Param "Rain_Wetness" (Scalar, Default=0.0, Range [0.0 - 1.0]):
+     Dynamic wetness control.
+     * When Wetness > 0:
+       - Roughness lerps down to 0.05 (mirror puddle reflection).
+       - Albedo darkens by 35% (water saturation optical effect).
+       - Specular increases from 0.5 to 0.65.
+   - Param "Puddle_Mask_Contrast" (Scalar, Default=4.0):
+     Controls puddle formation in micro-depressions before full road immersion.
+
+3. NORMAL MAPPING:
+   - Param "Micro_Normal_Intensity" (Scalar, Default=1.2):
+     Sharp granite aggregate micro-facets (provides realistic grazing angle specular highlights).
+   - Param "Macro_Normal_Intensity" (Scalar, Default=0.4):
+     Subtle road grading undulations and heavy vehicle rutting.
+   - Param "Detail_Normal_Tiling" (Scalar, Default=120.0):
+     Close-up road detail visible from vehicle cockpit camera.
+
+4. DISPLACEMENT / PARALLAX OCCLUSION (POM):
+   - Param "Displacement_Height_cm" (Scalar, Default=2.0):
+     Max height differential of asphalt chips.
+   - Param "POM_Min_Samples" (Scalar, Default=8):
+   - Param "POM_Max_Samples" (Scalar, Default=32):
+   - Param "Displacement_Fade_Distance" (Scalar, Default=3000.0 cm):
+     Displacement smoothly fades out to flat normal at distance for 120 FPS performance.
+
+5. ROAD MARKINGS INTEGRATION (Optional Multi-UV or Mask):
+   - Param "bEnableIntegratedMarkings" (StaticSwitch, Default=False):
+     When enabled, overlays dashed/solid paint layer via Vertex Color or UV1 mask.
+   - Param "Marking_Roughness" (Scalar, Default=0.42):
+   - Param "Marking_Retroreflectivity" (Scalar, Default=2.5): Glass bead retroreflection boost.
+
+--------------------------------------------------------------------------------
+MATERIAL GRAPH HLSL LOGIC:
+--------------------------------------------------------------------------------
+   // UV Calculations
+   float2 MacroUV = WorldPosition.xy * Macro_Variation_Tiling;
+   float2 MidUV   = WorldPosition.xy * (Aggregate_Tiling * 0.01);
+   float2 MicroUV = WorldPosition.xy * (Detail_Normal_Tiling * 0.01);
+
+   // Texture Samples (Parametric / Procedural Fallbacks)
+   float3 MacroNoise = Texture2DSample(T_MacroNoise, MacroUV).rgb;
+   float3 AggregateAlbedo = Texture2DSample(T_Asphalt_Albedo, MidUV).rgb;
+   float3 MicroNormalSample = Texture2DSample(T_Asphalt_Normal, MicroUV).rgb;
+
+   // Tire Groove Mask (Assuming Y-axis Highway or Spline Local V coordinate)
+   float LaneFraction = frac(WorldPosition.y / 375.0); // 3.75m lane width
+   float LeftWheelTrack  = smoothstep(0.18, 0.28, LaneFraction) * (1.0 - smoothstep(0.28, 0.38, LaneFraction));
+   float RightWheelTrack = smoothstep(0.62, 0.72, LaneFraction) * (1.0 - smoothstep(0.72, 0.82, LaneFraction));
+   float TireTrackMask = saturate(LeftWheelTrack + RightWheelTrack);
+
+   // Base Color
+   float3 DryAlbedo = Asphalt_Base_Tint.rgb * AggregateAlbedo * (1.0 - TireTrackMask * 0.15);
+   float3 WetAlbedo = DryAlbedo * 0.65; // Wet absorption
+   float3 FinalBaseColor = lerp(DryAlbedo, WetAlbedo, Rain_Wetness);
+
+   // Roughness
+   float DryRoughness = lerp(Dry_Roughness_Min, Dry_Roughness_Max, AggregateAlbedo.r) - (TireTrackMask * Tire_Track_Polish);
+   float WetRoughness = 0.04;
+   float FinalRoughness = lerp(DryRoughness, WetRoughness, Rain_Wetness * saturate(MacroNoise.r * Puddle_Mask_Contrast));
+
+   // Normal
+   float3 BlendedNormal = BlendAngleCorrectedNormals(MicroNormalSample * Micro_Normal_Intensity, float3(0,0,1));
+
+   // Outputs
+   Material.BaseColor = FinalBaseColor;
+   Material.Roughness = saturate(FinalRoughness);
+   Material.Normal    = BlendedNormal;
+   Material.Specular  = lerp(0.5, 0.65, Rain_Wetness);
+   Material.Metallic  = 0.0;
+================================================================================
+*/

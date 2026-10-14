@@ -1,0 +1,149 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VelocityLevel"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.LevelScriptActor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Level Blueprint: BP_VelocityLevel
+Asset Path: /Game/Blueprints/Core/BP_VelocityLevel
+Target Parent: ALevelScriptActor
+Associated Map: /Game/Maps/VelocityHighway_50KM.umap
+Description:
+   Main level orchestrator for VELOCITY X. Initializes, synchronizes, and streams:
+   - 50km+ multi-lane highway corridor with Physical Materials (PM_Asphalt, PM_Barrier)
+   - Staggered starting grid (8 slots) with tagged PlayerStarts (BP_HighwayStartGrid)
+   - Crash & Out-of-bounds Recovery Manager (BP_HighwayRecoveryManager)
+   - Checkpoint split triggers every 5km & Start/Finish lines (BP_RaceCheckpointTrigger)
+   - Atmospheric lighting & racing post-processing (BP_AtmosphericLightingSetup)
+   - Roadside elements (streetlights, gantries, SOS call boxes)
+   - Procedural nature clusters & high-speed HLOD foliage
+   - Dynamic traffic simulation system centered on player (BP_TrafficManager)
+   - Large World Coordinates & 250+ MPH streaming buffer (2.5 km active bubble)
+================================================================================
+
+LEVEL ACTOR REFERENCES & VARIABLES:
+--------------------------------------------------------------------------------
+- HighwayGeneratorActor (ABP_HighwayGenerator*)
+- StartGridActor (ABP_HighwayStartGrid*)
+- RecoveryManagerActor (ABP_HighwayRecoveryManager*)
+- AtmosphericLightingActor (ABP_AtmosphericLightingSetup*)
+- RoadsideSpawnerActor (ABP_RoadsideSpawner*)
+- CheckpointTriggers (Array<ABP_RaceCheckpointTrigger*>)
+- FoliageClusters (Array<ABP_ProceduralFoliageCluster*>)
+- TrafficManagerActor (ABP_TrafficManager*)
+- PlayerVehicleRef (AVELOCITYXVehicle*)
+
+- TotalTrackLengthKm (Float) = 50.0 km (5,000,000 uu)
+- CurrentPlayerKilometer (Float) = 0.0 km
+- RemainingDistanceKm (Float) = 50.0 km
+- ActiveStreamingRadius (Float) = 250000.0 cm (2.5 km for 250+ MPH runs)
+
+--------------------------------------------------------------------------------
+EVENT BEGIN PLAY SEQUENCE:
+--------------------------------------------------------------------------------
+Event BeginPlay:
+   Sequence:
+      // STEP 1: INITIALIZE ATMOSPHERIC LIGHTING & PERSPECTIVE
+      PrintString("VELOCITY X Level: Initializing Atmospheric Lighting & Sky...");
+      AtmosphericLightingActor = SpawnActor(BP_AtmosphericLightingSetup, FVector::ZeroVector);
+
+      // STEP 2: BUILD HIGHWAY CORRIDOR (50KM) WITH PM_ASPHALT & PM_BARRIER
+      PrintString("VELOCITY X Level: Generating 50km Multi-Lane Highway...");
+      HighwayGeneratorActor = SpawnActor(BP_HighwayGenerator, FVector::ZeroVector);
+      HighwayGeneratorActor->ConstructHighwayGrid();
+
+      // STEP 3: SPAWN STARTING GRID & RECOVERY MANAGER
+      PrintString("VELOCITY X Level: Setting up 8-Slot Staggered Start Grid & Recovery...");
+      StartGridActor = SpawnActor(BP_HighwayStartGrid, FVector(0.0f, 0.0f, 0.0f));
+      RecoveryManagerActor = SpawnActor(BP_HighwayRecoveryManager, FVector::ZeroVector);
+
+      // STEP 4: PLACE RACE CHECKPOINTS & SPLIT TRIGGERS (Start, 5km intervals, Finish)
+      PrintString("VELOCITY X Level: Placing 5km Milestone Checkpoints & Finish Line...");
+      SetupCheckpoints();
+
+      // STEP 5: PLACE ROADSIDE INFRASTRUCTURE
+      PrintString("VELOCITY X Level: Placing Roadside Lights, Gantries, and SOS Booths...");
+      RoadsideSpawnerActor = SpawnActor(BP_RoadsideSpawner, FVector::ZeroVector);
+      RoadsideSpawnerActor->GenerateRoadsideAssets();
+
+      // STEP 6: INITIALIZE PROCEDURAL NATURE & HIGH-SPEED HLOD CLUSTERS
+      PrintString("VELOCITY X Level: Initializing Nature Corridors with 250+ MPH buffer...");
+      SetupInitialFoliageClusters();
+
+      // STEP 7: INITIALIZE TRAFFIC SYSTEM
+      PrintString("VELOCITY X Level: Spawning Highway Traffic Manager...");
+      TrafficManagerActor = SpawnActor(BP_TrafficManager, FVector::ZeroVector);
+      TrafficManagerActor->InitializeTrafficPool();
+
+      // STEP 8: CACHE PLAYER VEHICLE
+      PlayerVehicleRef = Cast<AVELOCITYXVehicle>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+--------------------------------------------------------------------------------
+CHECKPOINT INITIALIZATION FUNCTION:
+--------------------------------------------------------------------------------
+Function SetupCheckpoints():
+   // 1. Start Line at X = 0
+   ABP_RaceCheckpointTrigger* StartTrig = SpawnActor(BP_RaceCheckpointTrigger, FVector(0,0,0));
+   StartTrig->TriggerType = "StartLine";
+   StartTrig->CheckpointIndex = 0;
+   StartTrig->DistanceAlongTrackKm = 0.0f;
+   CheckpointTriggers.Add(StartTrig);
+
+   // 2. Milestones every 5 km (Checkpoints 1 through 9)
+   FOR i from 1 to 9:
+      float DistKm = i * 5.0f;
+      float PosX = DistKm * 100000.0f; // 1 km = 100,000 cm
+      ABP_RaceCheckpointTrigger* Milestone = SpawnActor(BP_RaceCheckpointTrigger, FVector(PosX, 0, 0));
+      Milestone->TriggerType = "Milestone";
+      Milestone->CheckpointIndex = i;
+      Milestone->DistanceAlongTrackKm = DistKm;
+      CheckpointTriggers.Add(Milestone);
+
+   // 3. Finish Line at X = 50.0 km (5,000,000 cm)
+   ABP_RaceCheckpointTrigger* FinishTrig = SpawnActor(BP_RaceCheckpointTrigger, FVector(5000000.0f, 0, 0));
+   FinishTrig->TriggerType = "FinishLine";
+   FinishTrig->CheckpointIndex = 10;
+   FinishTrig->DistanceAlongTrackKm = 50.0f;
+   CheckpointTriggers.Add(FinishTrig);
+
+--------------------------------------------------------------------------------
+EVENT TICK (RUN-TIME WORLD STREAMING & RACE PROGRESS):
+--------------------------------------------------------------------------------
+Event Tick(DeltaTime):
+   If (!IsValid(PlayerVehicleRef)):
+      PlayerVehicleRef = Cast<AVELOCITYXVehicle>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+      return;
+
+   FVector PlayerLoc = PlayerVehicleRef->GetActorLocation();
+
+   // 1. OUT-OF-BOUNDS & CRASH CHECK
+   bool bOutOfBounds = false;
+   float OffRoadDist = 0.0f;
+   RecoveryManagerActor->IsVehicleOutOfBounds(PlayerLoc, bOutOfBounds, OffRoadDist);
+   If (bOutOfBounds && OffRoadDist > 1500.0f): // Player has vaulted past guardrail by > 15m
+      // Automatic recovery respawn onto nearest lane
+      FTransform RecovTransform;
+      int32 LaneIdx;
+      bool bSuccess;
+      RecoveryManagerActor->GetNearestHighwayRecoveryTransform(PlayerLoc, true, RecovTransform, LaneIdx, bSuccess);
+      If (bSuccess):
+         PlayerVehicleRef->SetActorTransform(RecovTransform, false, nullptr, ETeleportType::ResetPhysics);
+         PlayerVehicleRef->ResetVehicle();
+
+   // 2. UPDATE RACE PROGRESS
+   CurrentPlayerKilometer = FMath::Clamp(PlayerLoc.X / 100000.0f, 0.0f, TotalTrackLengthKm);
+   RemainingDistanceKm = TotalTrackLengthKm - CurrentPlayerKilometer;
+
+   // 3. TICK TRAFFIC SIMULATION
+   If (IsValid(TrafficManagerActor)):
+      TrafficManagerActor->UpdateTrafficStreaming(DeltaTime);
+
+   // 4. DYNAMIC HIGH-SPEED STREAMING (250+ MPH / 400+ KPH)
+   int32 CurrentPlayerChunk = FMath::FloorToInt(PlayerLoc.X / 20000.0f); // 200m per chunk
+   UpdateNatureChunkStreaming(CurrentPlayerChunk);
+================================================================================
+*/

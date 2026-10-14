@@ -1,0 +1,45 @@
+Begin Object Class=/Script/CoreUObject.Interface Name="BPI_HighwaySplineQuery"
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Interface: BPI_HighwaySplineQuery
+Asset Path: /Game/Blueprints/Highway/BPI_HighwaySplineQuery
+Target: BP_HighwayGenerator, BP_TrafficManager, AI Navigation & Vehicle Physics
+================================================================================
+
+INTERFACE FUNCTIONS:
+--------------------------------------------------------------------------------
+1. GetLaneTransformAtDistance:
+   Inputs:
+     - LaneIndex (Integer): 1 (Fast/Inner), 2 (Mid/Cruising), 3 (Slow/Truck)
+     - DistanceAlongHighway (Float): Longitudinal distance X in cm [0.0 to 5,000,000.0]
+     - bNorthbound (Boolean): True for +X direction, False for -X direction
+   Outputs:
+     - OutTransform (Transform): World position on lane center, forward heading tangent, road Z
+     - bIsValid (Boolean)
+
+2. GetNearestLane:
+   Inputs:
+     - WorldLocation (Vector)
+   Outputs:
+     - OutLaneIndex (Integer): 1, 2, or 3
+     - bOutNorthbound (Boolean): True if on Northbound carriageway (Y > 0)
+     - OutDistanceAlongHighway (Float): Clamped longitudinal distance
+     - OutLateralOffsetFromLaneCenter (Float): Deviation in cm from ideal lane center
+
+3. GetLaneSpeedLimit:
+   Inputs:
+     - LaneIndex (Integer)
+   Outputs:
+     - OutMinSpeedKPH (Float)
+     - OutMaxSpeedKPH (Float)
+
+4. GetLaneCenterY:
+   Inputs:
+     - LaneIndex (Integer)
+     - bNorthbound (Boolean)
+   Outputs:
+     - OutCenterY (Float): Precise lateral Y coordinate
+================================================================================
+*/

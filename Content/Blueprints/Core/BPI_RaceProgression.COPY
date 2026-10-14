@@ -1,0 +1,33 @@
+Begin Object Class=/Script/CoreUObject.Interface Name="BPI_RaceProgression"
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Interface: BPI_RaceProgression
+Asset Path: /Game/Blueprints/Core/BPI_RaceProgression
+Target: AVELOCITYXGameMode, AVELOCITYXPlayerController, HUD & Split Timers
+================================================================================
+
+INTERFACE FUNCTIONS:
+--------------------------------------------------------------------------------
+1. OnStartLineCrossed:
+   Inputs:
+     - PassingVehicle (Actor): Reference to the vehicle crossing the start line
+     - StartTimestamp (Float): World time seconds at start
+
+2. OnCheckpointPassed:
+   Inputs:
+     - CheckpointIndex (Integer): 1 to N milestone sequence
+     - DistanceKm (Float): Distance from start line in kilometers (e.g., 5.0, 10.0, 15.0...)
+     - SplitTime (Float): Elapsed race time from Start Line
+     - SpeedKPH (Float): Vehicle velocity at moment of passing
+     - SpeedMPH (Float): Vehicle velocity in MPH
+     - PassingVehicle (Actor): Vehicle reference
+
+3. OnFinishLineCrossed:
+   Inputs:
+     - PassingVehicle (Actor)
+     - TotalRaceTime (Float): Final completed course time
+     - TopSpeedKPH (Float): Peak speed recorded across the 50km run
+================================================================================
+*/

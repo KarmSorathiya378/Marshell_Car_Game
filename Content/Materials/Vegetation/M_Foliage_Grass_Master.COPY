@@ -1,0 +1,45 @@
+Begin Object Class=/Script/Engine.Material Name="M_Foliage_Grass_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Masked
+   ShadingModel=MSM_TwoSidedFoliage
+   TwoSided=True
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Foliage_Grass_Master
+Asset Path: /Game/Materials/Vegetation/M_Foliage_Grass_Master
+Target Use: Roadside grass verge, highway median grass, terrain ground cover
+
+PBR & SHADING SPECIFICATION:
+--------------------------------------------------------------------------------
+1. BASE COLOR & ROOT-TO-TIP GRADIENT:
+   - Param "Grass_Tip_Color" (LinearColor, Default=(0.28, 0.42, 0.12, 1.0)):
+     Sun-exposed green blade tips.
+   - Param "Grass_Root_Color" (LinearColor, Default=(0.10, 0.16, 0.04, 1.0)):
+     Occluded darker base near soil.
+   - Param "Dry_Patch_Intensity" (Scalar, Default=0.20):
+     Yellowed dry grass patches along dusty highway edge.
+
+2. SUBSURFACE SCATTERING:
+   - Param "SubsurfaceColor" (LinearColor, Default=(0.35, 0.50, 0.12, 1.0)):
+   - Param "SubsurfaceStrength" (Scalar, Default=0.6):
+
+3. HIGH-SPEED WIND WAVE:
+   - Param "WindWaveSpeed" (Scalar, Default=2.5):
+   - Param "WindWaveScale" (Scalar, Default=0.003): World UV frequency.
+   - Param "MaxBladeDisplacement" (Scalar, Default=12.0 cm):
+   - Integrates MF_WindAnimation with UV.V height mask (tips bend, base anchored).
+
+4. DISTANCE CULLING & FADE:
+   - Param "CullDistance_Start" (Scalar, Default=3500.0 cm): 35 meters.
+   - Param "CullDistance_End" (Scalar, Default=5500.0 cm): 55 meters.
+   - Uses PerInstanceFadeAmount for smooth dithering to avoid pop-in at 300+ km/h.
+================================================================================
+*/

@@ -1,0 +1,33 @@
+Begin Object Class=/Script/Engine.Material Name="M_LightEmission_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_LightEmission_Master
+Asset Path: /Game/Materials/Lighting/M_LightEmission_Master
+Target Use: Highway street lamp fixtures, overhead gantry matrix displays,
+            emergency phone beacons, vehicle headlights and taillights
+
+SPECIFICATION & EMISSIVE REGISTRY:
+--------------------------------------------------------------------------------
+1. EMISSIVE COLOR & PHYSICAL ILLUMINANCE:
+   - Param "EmissionColor" (LinearColor, Default=(1.0, 0.92, 0.82, 1.0)):
+     4200K high-intensity LED highway lighting tone.
+   - Param "EmissionIntensityNits" (Scalar, Default=50000.0):
+     Calibrated in cd/m² (Nits) for physical auto-exposure compatibility.
+   - Param "bUseSodiumVaporOrange" (StaticSwitch, Default=False):
+     Switches to 2200K monochromatic high-pressure sodium orange (1.0, 0.55, 0.05).
+
+2. CAMERA DISTANCE COMPENSATION:
+   - Preserves apparent brightness and prevents bloom flicker at extreme distances
+     down the 50km straightaway.
+================================================================================
+*/

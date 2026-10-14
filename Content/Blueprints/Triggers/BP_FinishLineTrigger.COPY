@@ -1,0 +1,130 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_FinishLineTrigger"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_FinishLineTrigger
+Asset Path: /Game/Blueprints/Triggers/BP_FinishLineTrigger
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Full-span checkered finish line trigger for VELOCITY X.
+   Stops race stopwatch, evaluates final course time and peak trap speed,
+   compares against UVELOCITYXGameInstance best lap records, triggers victory
+   visual celebration and audio fanfare, and transitions game state.
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── FinishLineVolume (BoxComponent)
+  │     - BoxExtent: (100.0, 1800.0, 500.0) cm (Spans all lanes + shoulders)
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │     - RelativeLocation: (0.0, 0.0, 250.0)
+  │
+  ├── FinishGantryStructure (StaticMeshComponent)
+  │     - Mesh: SM_FinishGantry_Truss_37m
+  │     - RelativeLocation: (0.0, 0.0, 0.0)
+  │
+  ├── CheckeredArchBanner (StaticMeshComponent)
+  │     - Mesh: SM_Checkered_Arch_Banner
+  │     - Material: M_CheckeredFlag_Emissive
+  │     - RelativeLocation: (0.0, 0.0, 950.0)
+  │
+  ├── FinishLaserSplit (NiagaraComponent)
+  │     - System: NS_FinishLineLaser_Checkered (Gold and White pulsed laser line)
+  │     - RelativeLocation: (0.0, 0.0, 50.0)
+  │
+  ├── FireworksEmitter_Left (NiagaraComponent)
+  │     - System: NS_VictoryFireworks_Cluster
+  │     - RelativeLocation: (200.0, -1900.0, 1200.0)
+  │     - AutoActivate: False
+  │
+  ├── FireworksEmitter_Right (NiagaraComponent)
+  │     - System: NS_VictoryFireworks_Cluster
+  │     - RelativeLocation: (200.0, 1900.0, 1200.0)
+  │     - AutoActivate: False
+  │
+  ├── Audio_CheeringCrowd (AudioComponent)
+  │     - Sound: SoundCue'/Game/Audio/Ambience/SC_FinishCrowdCheer'
+  │
+  └── Audio_VictoryFanfare (AudioComponent)
+        - Sound: SoundCue'/Game/Audio/Music/SC_Race_VictoryFanfare'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- FinishTrackDistanceKm (Float) = 7.0 km (700,000 uu for standard circuit)
+- bFinishLineCrossed (Boolean) = False
+- FinalRaceTime (Float) = 0.0 s
+- PeakSpeedKPH (Float) = 0.0 km/h
+
+--------------------------------------------------------------------------------
+3. EVENT DISPATCHERS:
+--------------------------------------------------------------------------------
+- EventDispatcher OnRaceFinished(float TotalTime, float TopSpeed, bool bNewRecord, AActor* Winner)
+
+--------------------------------------------------------------------------------
+4. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event OnComponentBeginOverlap (FinishLineVolume, OtherActor, OtherComp...):
+   1. Validation:
+      - If (bFinishLineCrossed) Return;
+      - Check if OtherActor is vehicle (ABaseCar or AVELOCITYXVehicle)
+      - If False, Return;
+
+   2. Mark Triggered:
+      - bFinishLineCrossed = True
+
+   3. Halt Race Stopwatch:
+      - AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+      - If (GM):
+          FinalRaceTime = GM->GetElapsedTime();
+          GM->PauseTimer();
+
+   4. Capture Trap Speed:
+      - If (OtherActor->IsA(ABaseCar::StaticClass())):
+          PeakSpeedKPH = Cast<ABaseCar>(OtherActor)->GetSpeedKPH();
+      - Else If (OtherActor->IsA(AVELOCITYXVehicle::StaticClass())):
+          PeakSpeedKPH = Cast<AVELOCITYXVehicle>(OtherActor)->GetSpeed() * 0.036f;
+
+   5. Compare & Save Record to UVELOCITYXGameInstance:
+      - UVELOCITYXGameInstance* GI = Cast<UVELOCITYXGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+      - bool bNewRecord = false;
+      - If (GI):
+          int32 SelectedCarIdx = GM ? (int32)GM->GetSelectedCarType() : 0;
+          int32 MillisecondsCurrent = FMath::RoundToInt(FinalRaceTime * 1000.0f);
+          int32 PreviousBest = GI->BestLapTimes[SelectedCarIdx];
+          If (PreviousBest <= 0 || MillisecondsCurrent < PreviousBest):
+              GI->BestLapTimes[SelectedCarIdx] = MillisecondsCurrent;
+              bNewRecord = true;
+          GI->CompletedRaces += 1;
+          GI->SaveGameData(); // Flush to savegame.json
+
+   6. Trigger Victory Effects:
+      - FireworksEmitter_Left->Activate(true);
+      - FireworksEmitter_Right->Activate(true);
+      - Audio_CheeringCrowd->Play();
+      - Audio_VictoryFanfare->Play();
+
+   7. Broadcast & Interface Dispatch:
+      - OnRaceFinished.Broadcast(FinalRaceTime, PeakSpeedKPH, bNewRecord, OtherActor);
+      - If (GM && GM->GetClass()->ImplementsInterface(UBPI_RaceProgression::StaticClass())):
+          IBPI_RaceProgression::Execute_OnFinishLineCrossed(GM, OtherActor, FinalRaceTime, PeakSpeedKPH);
+      - APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+      - If (PC && PC->GetHUD() && PC->GetHUD()->GetClass()->ImplementsInterface(UBPI_CheckpointListener::StaticClass())):
+          IBPI_CheckpointListener::Execute_OnFinishLineCrossedNotification(PC->GetHUD(), FinalRaceTime, PeakSpeedKPH, OtherActor, bNewRecord);
+
+   8. Transition State to GameOver:
+      - Set Timer by Event (Delay = 3.5s):
+          If (GM):
+             GM->SetGameState(EGameState::GameOver);
+================================================================================
+*/

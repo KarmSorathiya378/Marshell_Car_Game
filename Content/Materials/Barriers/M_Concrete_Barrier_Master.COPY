@@ -1,0 +1,48 @@
+Begin Object Class=/Script/Engine.Material Name="M_Concrete_Barrier_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Concrete_Barrier_Master
+Asset Path: /Game/Materials/Barriers/M_Concrete_Barrier_Master
+Target Use: New Jersey highway median barriers, bridge abutments, crash cushions
+
+PBR SPECIFICATION & PARAMETER REGISTRY:
+--------------------------------------------------------------------------------
+1. BASE COLOR (Albedo):
+   - Param "Concrete_Tint" (LinearColor, Default=(0.62, 0.60, 0.58, 1.0)):
+     Weathered structural precast concrete.
+   - Param "Dirt_Splash_Tint" (LinearColor, Default=(0.28, 0.22, 0.16, 1.0)):
+     Highway grime / rainwater wheel splash along lower 40cm of barrier.
+   - Param "Splash_Gradient_Height" (Scalar, Default=45.0 cm):
+     Vertical gradient start height.
+
+2. ROUGHNESS & METALLIC:
+   - Param "Roughness_Dry" (Scalar, Default=0.82): Porous concrete surface.
+   - Param "Roughness_Splash" (Scalar, Default=0.50): Smoother mud/grease residue.
+   - Param "Metallic" (Scalar, Default=0.0): Dielectric.
+
+3. NORMAL & EDGE DAMAGE:
+   - Param "Formwork_Normal_Intensity" (Scalar, Default=0.8):
+     Horizontal wooden/steel mold seams and form tie holes.
+   - Param "Chip_Damage_Intensity" (Scalar, Default=1.2):
+     Corner and top edge impact spalling.
+   - Param "Tiling_U" (Scalar, Default=4.0):
+   - Param "Tiling_V" (Scalar, Default=1.0):
+
+4. REFLECTIVE STRIP / DELINEATOR:
+   - Param "bHasDelineatorStripe" (StaticSwitch, Default=False):
+   - Param "DelineatorColor" (LinearColor, Default=(1.0, 0.8, 0.0, 1.0)):
+   - Param "DelineatorEmissive" (Scalar, Default=0.0): Unlit retroreflectivity.
+================================================================================
+*/

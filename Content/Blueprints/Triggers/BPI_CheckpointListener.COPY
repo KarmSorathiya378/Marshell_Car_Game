@@ -1,0 +1,46 @@
+Begin Object Class=/Script/CoreUObject.Interface Name="BPI_CheckpointListener"
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Interface: BPI_CheckpointListener
+Asset Path: /Game/Blueprints/Triggers/BPI_CheckpointListener
+Target: BP_VelocityHUD, AVELOCITYXGameMode, BP_MainGameMapLevel, Audio Managers
+Author: Level Designer
+================================================================================
+
+INTERFACE FUNCTIONS:
+--------------------------------------------------------------------------------
+1. OnCheckpointCrossedNotification:
+   Broadcasted when any vehicle traverses a sector checkpoint.
+   Inputs:
+     - CheckpointIndex (Integer): Sequence number (1, 2, 3, 4...)
+     - CheckpointName (String): Display name (e.g. "SECTOR 1 SPLIT", "HIGHWAY PASS")
+     - SplitTimeSeconds (Float): Elapsed race clock time at point of crossing
+     - SplitDeltaSeconds (Float): Comparison delta against current best lap (+/- seconds)
+     - TrapSpeedKPH (Float): Instantaneous trap velocity in km/h
+     - TrapSpeedMPH (Float): Instantaneous trap velocity in mph
+     - PassingVehicle (Actor): Vehicle actor that triggered the gate
+
+2. OnStartLineCrossedNotification:
+   Broadcasted when starting line timing laser is broken.
+   Inputs:
+     - StartTimestamp (Float): World time seconds
+     - PassingVehicle (Actor): Vehicle actor
+
+3. OnFinishLineCrossedNotification:
+   Broadcasted when checkered finish line is crossed.
+   Inputs:
+     - FinalRaceTime (Float): Total race duration
+     - TopSpeedKPH (Float): Peak speed attained across the course
+     - PassingVehicle (Actor): Vehicle actor
+     - bNewCourseRecord (Boolean): True if current run beat GameInstance best time
+
+4. OnVehicleRecoveredNotification:
+   Broadcasted when vehicle unstuck recovery teleport is performed.
+   Inputs:
+     - RecoveredVehicle (Actor): Vehicle actor
+     - RecoveryLocation (Vector): Safe respawn world position
+     - RecoveryHeadingDegrees (Float): Safe respawn yaw rotation
+================================================================================
+*/

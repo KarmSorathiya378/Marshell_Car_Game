@@ -1,0 +1,106 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_RaceResults"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/UMG.UserWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_RaceResults
+Asset Path: /Game/Blueprints/UI/BP_RaceResults
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Integration: BP_VELOCITYXPlayerController, BP_VELOCITYXPlayerState, AVELOCITYXGameMode
+Author: Blueprint Developer
+Description:
+   Post-race results and podium scoreboard widget displayed on GameOver/End state:
+   - Displays final elapsed time, best lap, top speed recorded, total score
+   - Clean driving bonus and near-miss medal accolades
+   - Interactive options: Restart Race, Select New Car, and Return to Main Menu
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |
+  |-- [BackdropOverlay] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: Material'/Game/Materials/UI/M_UI_BackgroundBlur'
+  |     Z-Order: 0
+  |
+  |-- [ResultsModalCard] (VerticalBox)
+        Anchors: Center (Min: 0.5,0.5, Max: 0.5,0.5) | Alignment: (0.5, 0.5)
+        Position: X: 0, Y: 0 | Size: X: 640, Y: 720
+        Z-Order: 10
+        |
+        |-- [ResultsHeader] (VerticalBox, Margin: (0, 0, 0, 24))
+        |     |-- [Txt_ResultsTitle] (TextBlock)
+        |     |     Text: "COURSE COMPLETE"
+        |     |     Font: Syncopate-Bold, Size 34, Color: Pure White
+        |     |     Alignment: Center
+        |     |-- [Txt_ResultsSubtitle] (TextBlock)
+        |     |     Text: "// 50KM HIGHWAY RUN FINISHED"
+        |     |     Font: Rajdhani-Bold, Size 14, Color: Gold
+        |     |     Alignment: Center
+        |     |-- [HeaderBar] (Image, Size: 600 x 2, Color: Gold, Margin: (0, 8, 0, 0))
+        |
+        |-- [ScoreCardBox] (Border, Margin: (0, 0, 0, 20))
+        |     Background: SlateColor(0.04, 0.06, 0.09, 0.85) | Border: 1px Gold
+        |     Padding: (24, 16, 24, 16)
+        |     |-- [ScoresStack] (VerticalBox)
+        |           |-- [Row_TotalTime] (HorizontalBox)
+        |           |     |-- [Lbl_Time] (TextBlock, Text: "TOTAL TIME:", Font: Rajdhani-SemiBold, Size 15, Color: Gray)
+        |           |     |-- [Spacer_R1] (Spacer, Size: 1.0 Fill)
+        |           |     |-- [Txt_TotalTime] (TextBlock, Text: "02:45.319", Font: Orbitron-Black, Size 20, Color: Cyan)
+        |           |-- [Row_BestLap] (HorizontalBox, Margin: (0, 8, 0, 0))
+        |           |     |-- [Lbl_Lap] (TextBlock, Text: "BEST LAP:", Font: Rajdhani-SemiBold, Size 15, Color: Gray)
+        |           |     |-- [Spacer_R2] (Spacer, Size: 1.0 Fill)
+        |           |     |-- [Txt_BestLap] (TextBlock, Text: "00:52.184", Font: Orbitron-Bold, Size 16, Color: White)
+        |           |-- [Row_TopSpeed] (HorizontalBox, Margin: (0, 8, 0, 0))
+        |           |     |-- [Lbl_Speed] (TextBlock, Text: "TOP SPEED:", Font: Rajdhani-SemiBold, Size 15, Color: Gray)
+        |           |     |-- [Spacer_R3] (Spacer, Size: 1.0 Fill)
+        |           |     |-- [Txt_TopSpeed] (TextBlock, Text: "264.8 MPH", Font: Orbitron-Bold, Size 16, Color: Neon Red)
+        |           |-- [Row_Score] (HorizontalBox, Margin: (0, 8, 0, 0))
+        |           |     |-- [Lbl_Score] (TextBlock, Text: "TOTAL SCORE:", Font: Rajdhani-SemiBold, Size 15, Color: Gray)
+        |           |     |-- [Spacer_R4] (Spacer, Size: 1.0 Fill)
+        |           |     |-- [Txt_FinalScore] (TextBlock, Text: "185,420 PTS", Font: Orbitron-Black, Size 20, Color: Gold)
+        |
+        |-- [ActionButtonsStack] (VerticalBox)
+              |-- [Btn_RestartRace] (Button, Height: 50, Margin: (0, 0, 0, 10))
+              |     |-- [Txt_Restart] (TextBlock, Text: "RETRY COURSE", Font: Rajdhani-Bold, Size 16)
+              |-- [Btn_Garage] (Button, Height: 50, Margin: (0, 0, 0, 10))
+              |     |-- [Txt_Garage] (TextBlock, Text: "SELECT CAR", Font: Rajdhani-Bold, Size 16)
+              |-- [Btn_MainMenu] (Button, Height: 50)
+                    |-- [Txt_MainMenu] (TextBlock, Text: "MAIN MENU", Font: Rajdhani-Bold, Size 16)
+
+--------------------------------------------------------------------------------
+2. EVENT GRAPH SCRIPTING:
+--------------------------------------------------------------------------------
+
+Function PopulateResults(FinalTime, BestLap, TopSpeedMPH, TotalScore, CleanBonus):
+    Txt_TotalTime->SetText(FormatTimeSeconds(FinalTime));
+    Txt_BestLap->SetText(FormatTimeSeconds(BestLap));
+    Txt_TopSpeed->SetText(String(TopSpeedMPH, 1) + " MPH");
+    Txt_FinalScore->SetText(String(TotalScore) + " PTS");
+
+Event OnClicked(Btn_RestartRace):
+    BP_VELOCITYXPlayerController* PC = Cast<BP_VELOCITYXPlayerController>(GetOwningPlayer());
+    If (PC):
+        PC->SwitchGameState(EGameState::Racing);
+
+Event OnClicked(Btn_Garage):
+    BP_VELOCITYXPlayerController* PC = Cast<BP_VELOCITYXPlayerController>(GetOwningPlayer());
+    If (PC):
+        PC->SwitchGameState(EGameState::CarSelect);
+
+Event OnClicked(Btn_MainMenu):
+    BP_VELOCITYXPlayerController* PC = Cast<BP_VELOCITYXPlayerController>(GetOwningPlayer());
+    If (PC):
+        PC->SwitchGameState(EGameState::MainMenu);
+================================================================================
+*/

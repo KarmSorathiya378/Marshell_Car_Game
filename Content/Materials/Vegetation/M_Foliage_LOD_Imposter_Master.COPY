@@ -1,0 +1,37 @@
+Begin Object Class=/Script/Engine.Material Name="M_Foliage_LOD_Imposter_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Masked
+   ShadingModel=MSM_DefaultLit
+   TwoSided=True
+   bUsedWithStaticLighting=False
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Foliage_LOD_Imposter_Master
+Asset Path: /Game/Materials/Vegetation/M_Foliage_LOD_Imposter_Master
+Target Use: Distant forest canopy LODs & HLOD billboard clusters (300m to 5000m)
+
+OPTIMIZATION & ARCHITECTURE:
+--------------------------------------------------------------------------------
+1. OCTAHEDRAL / MULTI-ANGLE ATLAS:
+   - Renders 16 baked views of the tree into a single texture atlas.
+   - Calculates viewing vector relative to instance forward vector to look up
+     the matching angle seamlessly as the player speeds along the 50km highway.
+   - Param "AtlasFrames" (Scalar, Default=16.0):
+   - Param "Roughness_Imposter" (Scalar, Default=0.65): Pre-integrated diffuse.
+
+2. LIGHTING & DEPTH RECONSTRUCTION:
+   - Uses pre-baked World Normal map in atlas to properly respond to directional sun.
+   - Depth Offset expression restores cylindrical 3D depth to eliminate flat card clipping.
+
+3. ATMOSPHERIC HAZE BLENDING:
+   - Param "AerialPerspectiveScale" (Scalar, Default=1.0):
+   - Smoothly blends imposter albedo into the distant mountain fog palette.
+================================================================================
+*/

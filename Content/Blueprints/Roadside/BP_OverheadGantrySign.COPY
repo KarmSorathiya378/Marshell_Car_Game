@@ -1,0 +1,54 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_OverheadGantrySign"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_OverheadGantrySign
+Asset Path: /Game/Blueprints/Roadside/BP_OverheadGantrySign
+Target Parent: AActor
+Description:
+   Full-span highway steel truss overhead gantry spanning 34 meters across the
+   multi-lane highway. Features directional destination signs, variable message
+   LED speed limit matrix (VMS), and radar camera flashers.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── TrussStructureMesh (StaticMeshComponent)
+  │     - Mesh: SM_Highway_Gantry_Truss_34m
+  │     - Material: M_Guardrail_Galvanized_Master
+  │     - Dimensions: Span 3400 cm, Clearance Height 620 cm
+  │
+  ├── ExitSignPlate_Left (StaticMeshComponent)
+  │     - Mesh: SM_Highway_SignPlate_Green (600 x 300 x 10 cm)
+  │     - Material: MI_Highway_Sign_Retroreflective_Green
+  │     - Text: "VELOCITY CIRCUIT - NEXT EXIT 2 KM"
+  │
+  ├── ExitSignPlate_Right (StaticMeshComponent)
+  │     - Mesh: SM_Highway_SignPlate_Green (600 x 300 x 10 cm)
+  │     - Material: MI_Highway_Sign_Retroreflective_Green
+  │     - Text: "METROPOLIS DOWNTOWN - STRAIGHT 48 KM"
+  │
+  ├── VMS_SpeedMatrixDisplay (StaticMeshComponent)
+  │     - Mesh: SM_Electronic_Matrix_Screen (250 x 250 x 20 cm)
+  │     - Material: M_LightEmission_Master (LED amber display)
+  │     - CurrentSpeedLimit: 130 km/h (or dynamic warning)
+  │
+  └── MaintenanceCatwalkMesh (StaticMeshComponent)
+        - Mesh: SM_Gantry_Catwalk_Grating
+        - Material: M_Guardrail_Galvanized_Master
+
+--------------------------------------------------------------------------------
+VARIABLES:
+--------------------------------------------------------------------------------
+- HighwayKilometerMarker (Float) = 5.0 km
+- DisplayedSpeedLimit (Integer) = 130
+- WarningMessageText (Text) = "HIGH SPEED CORRIDOR - MAINTAIN DISTANCE"
+================================================================================
+*/

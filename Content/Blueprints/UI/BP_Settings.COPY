@@ -1,0 +1,230 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_Settings"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/UMG.UserWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_Settings
+Asset Path: /Game/Blueprints/UI/BP_Settings
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Integration: UVELOCITYXGameInstance, AVelocityPlayerController
+Author: UI Designer (Nimbus)
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |
+  |-- [SettingsBackdrop] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: Material'/Game/Materials/UI/M_UI_BackgroundBlur'
+  |     Z-Order: 0
+  |
+  |-- [SettingsMainModal] (CanvasPanel)
+  |     Anchors: Center (Min: 0.5,0.5, Max: 0.5,0.5) | Alignment: (0.5, 0.5)
+  |     Position: X: 0, Y: 0 | Size: X: 1400, Y: 840
+  |     Z-Order: 10
+  |     |
+  |     |-- [ModalFrameBorder] (Border)
+  |     |     Size: 1400 x 840
+  |     |     Background: SlateColor(0.03, 0.05, 0.08, 0.95) | Border: 1px Cyan
+  |     |
+  |     |-- [HeaderSection] (HorizontalBox)
+  |     |     Position: X: 50, Y: 40 | Size: X: 1300, Y: 70
+  |     |     |-- [Txt_Title] (TextBlock, Text: "SYSTEM CONFIGURATION", Font: Syncopate-Bold, Size 30, Color: White)
+  |     |     |-- [Spacer_H1] (Spacer, Size: 1.0 Fill)
+  |     |     |-- [Btn_CloseCross] (Button, Size: 44 x 44)
+  |     |           Child: [Txt_X] (TextBlock, Text: "X", Font: Rajdhani-Bold, Size 22, Color: Gray)
+  |     |
+  |     |-- [SettingsTabBar] (HorizontalBox)
+  |     |     Position: X: 50, Y: 120 | Size: X: 1300, Y: 50
+  |     |     |-- [Btn_TabGraphics] (Button, Size: 220 x 48)
+  |     |     |     Child: [Txt_TabGfx] (TextBlock, Text: "01 // GRAPHICS & VIDEO", Font: Rajdhani-Bold, Size 16)
+  |     |     |-- [Btn_TabAudio] (Button, Size: 220 x 48, Margin: (15,0,0,0))
+  |     |     |     Child: [Txt_TabAud] (TextBlock, Text: "02 // AUDIO & SOUND", Font: Rajdhani-Bold, Size 16)
+  |     |     |-- [Btn_TabControls] (Button, Size: 220 x 48, Margin: (15,0,0,0))
+  |     |           Child: [Txt_TabCtrl] (TextBlock, Text: "03 // KEY BINDINGS", Font: Rajdhani-Bold, Size 16)
+  |     |
+  |     |-- [SettingsWidgetSwitcher] (WidgetSwitcher)
+  |     |     Position: X: 50, Y: 190 | Size: X: 1300, Y: 550
+  |     |     |
+  |     |     |-- [Page_Graphics] (ScrollBox) -> [Slot 0]
+  |     |     |     |-- [Content_Graphics] (VerticalBox, Padding: 20)
+  |     |     |           |-- [Option_GraphicsQuality] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_GfxQuality] (TextBlock, Text: "GRAPHICS PRESET", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_GQ] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Slider_GraphicsQuality] (Slider, Min: 0, Max: 3, Step: 1, Value: 2, Size: 280 x 32)
+  |     |     |           |     |-- [Txt_GfxQualityVal] (TextBlock, Text: "HIGH", Font: Rajdhani-Bold, Size 18, Color: Cyan, Margin: (20,0,0,0))
+  |     |     |           |
+  |     |     |           |-- [Option_Resolution] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_Resolution] (TextBlock, Text: "SCREEN RESOLUTION", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_Res] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Combo_Resolution] (ComboBoxString, Selected: "1920 x 1080 (16:9)", Size: 340 x 36)
+  |     |     |           |           Options: ["1280 x 720 (HD)", "1920 x 1080 (FHD)", "2560 x 1440 (2K QHD)", "3840 x 2160 (4K UHD)"]
+  |     |     |           |
+  |     |     |           |-- [Option_WindowMode] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_WindowMode] (TextBlock, Text: "DISPLAY MODE", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_WM] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Combo_WindowMode] (ComboBoxString, Selected: "FULLSCREEN", Size: 340 x 36)
+  |     |     |           |           Options: ["EXCLUSIVE FULLSCREEN", "BORDERLESS WINDOWED", "WINDOWED"]
+  |     |     |           |
+  |     |     |           |-- [Option_MotionBlur] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_MotionBlur] (TextBlock, Text: "MOTION BLUR (VELOCITY SENSATION)", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_MB] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Check_MotionBlur] (CheckBox, IsChecked: True)
+  |     |     |           |
+  |     |     |           |-- [Option_AntiAliasing] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_AA] (TextBlock, Text: "ANTI-ALIASING (TSR / TAA)", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_AA] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Check_AntiAliasing] (CheckBox, IsChecked: True)
+  |     |     |           |
+  |     |     |           |-- [Option_FOV] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |                 |-- [Lbl_FOV] (TextBlock, Text: "CAMERA FIELD OF VIEW (FOV)", Font: Rajdhani-Bold, Size 18)
+  |     |     |                 |-- [Spacer_FOV] (Spacer, Size: 1.0 Fill)
+  |     |     |                 |-- [Slider_FOV] (Slider, Min: 70, Max: 110, Value: 90, Size: 280 x 32)
+  |     |     |                 |-- [Txt_FOVVal] (TextBlock, Text: "90 deg", Font: Rajdhani-Bold, Size 18, Color: Cyan, Margin: (20,0,0,0))
+  |     |     |
+  |     |     |-- [Page_Audio] (ScrollBox) -> [Slot 1]
+  |     |     |     |-- [Content_Audio] (VerticalBox, Padding: 20)
+  |     |     |           |-- [Option_MasterVol] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_MasterVol] (TextBlock, Text: "MASTER VOLUME", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_MV] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Slider_MasterVol] (Slider, Min: 0.0, Max: 1.0, Value: 1.0, Size: 280 x 32)
+  |     |     |           |     |-- [Txt_MasterVolVal] (TextBlock, Text: "100%", Font: Rajdhani-Bold, Size 18, Color: Cyan, Margin: (20,0,0,0))
+  |     |     |           |
+  |     |     |           |-- [Option_SFXVol] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_SFXVol] (TextBlock, Text: "SOUND EFFECTS (ENGINE / TIRES / CRASH)", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_SFX] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Slider_SFXVol] (Slider, Min: 0.0, Max: 1.0, Value: 1.0, Size: 280 x 32)
+  |     |     |           |     |-- [Txt_SFXVolVal] (TextBlock, Text: "100%", Font: Rajdhani-Bold, Size 18, Color: Cyan, Margin: (20,0,0,0))
+  |     |     |           |
+  |     |     |           |-- [Option_MusicVol] (HorizontalBox, Margin: (0, 0, 0, 24))
+  |     |     |           |     |-- [Lbl_MusicVol] (TextBlock, Text: "SYNTHWAVE MUSIC / OST", Font: Rajdhani-Bold, Size 18)
+  |     |     |           |     |-- [Spacer_Mus] (Spacer, Size: 1.0 Fill)
+  |     |     |           |     |-- [Slider_MusicVol] (Slider, Min: 0.0, Max: 1.0, Value: 0.8, Size: 280 x 32)
+  |     |     |           |     |-- [Txt_MusicVolVal] (TextBlock, Text: "80%", Font: Rajdhani-Bold, Size 18, Color: Cyan, Margin: (20,0,0,0))
+  |     |     |
+  |     |     |-- [Page_Controls] (ScrollBox) -> [Slot 2]
+  |     |           |-- [Content_Controls] (VerticalBox, Padding: 20)
+  |     |                 |-- [KeyBindingHeader] (TextBlock, Text: "DEFAULT INPUT MAPPINGS (ENHANCED INPUT SYSTEM)", Font: Rajdhani-Bold, Size 16, Color: Cyan, Margin: (0,0,0,16))
+  |     |                 |-- [Row_BindThrottle] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Throttle] (TextBlock, Text: "ACCELERATE / THROTTLE")
+  |     |                 |     |-- [Spacer_B1] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyThrottle] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_W] ("W / UP ARROW / R2"))
+  |     |                 |-- [Row_BindBrake] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Brake] (TextBlock, Text: "BRAKE / REVERSE")
+  |     |                 |     |-- [Spacer_B2] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyBrake] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_S] ("S / DOWN ARROW / L2"))
+  |     |                 |-- [Row_BindSteer] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Steer] (TextBlock, Text: "STEER LEFT / RIGHT")
+  |     |                 |     |-- [Spacer_B3] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeySteer] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_AD] ("A, D / LEFT-STICK"))
+  |     |                 |-- [Row_BindHandbrake] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Handbrake] (TextBlock, Text: "HANDBRAKE (DRIFT)")
+  |     |                 |     |-- [Spacer_B4] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyHandbrake] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_Space] ("SPACEBAR / BUTTON A"))
+  |     |                 |-- [Row_BindCamera] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Camera] (TextBlock, Text: "CYCLE CAMERA")
+  |     |                 |     |-- [Spacer_B5] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyCamera] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_C] ("C / R3"))
+  |     |                 |-- [Row_BindReset] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Reset] (TextBlock, Text: "RESET VEHICLE")
+  |     |                 |     |-- [Spacer_B6] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyReset] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_R] ("R / BUTTON Y"))
+  |     |                 |-- [Row_BindHeadlights] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                 |     |-- [Txt_Act_Headlights] (TextBlock, Text: "TOGGLE HEADLIGHTS")
+  |     |                 |     |-- [Spacer_B7] (Spacer, Size: 1.0 Fill)
+  |     |                 |     |-- [Badge_KeyHeadlights] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_L] ("L / D-PAD UP"))
+  |     |                 |-- [Row_BindPause] (HorizontalBox, Margin: (0,0,0,12))
+  |     |                       |-- [Txt_Act_Pause] (TextBlock, Text: "PAUSE RACE")
+  |     |                       |-- [Spacer_B8] (Spacer, Size: 1.0 Fill)
+  |     |                       |-- [Badge_KeyPause] (Border, Padding: (14,4,14,4), Background: DarkGray, Child: [Txt_Esc] ("ESC / START"))
+  |     |
+  |     |-- [FooterActionButtons] (HorizontalBox)
+  |           Position: X: 50, Y: 760 | Size: X: 1300, Y: 54
+  |           |-- [Btn_ResetDefaults] (Button, Size: 220 x 50)
+  |           |     Child: [Txt_Defaults] (TextBlock, Text: "RESET DEFAULTS", Font: Rajdhani-Bold, Size 18)
+  |           |-- [Spacer_F1] (Spacer, Size: 1.0 Fill)
+  |           |-- [Btn_Cancel] (Button, Size: 180 x 50, Margin: (0,0,16,0))
+  |           |     Child: [Txt_Cancel] (TextBlock, Text: "CANCEL", Font: Rajdhani-Bold, Size 18)
+  |           |-- [Btn_ApplyAndSave] (Button, Size: 220 x 50)
+  |                 Style: Normal (Velocity Crimson, 2px Glow)
+  |                 Child: [Txt_Save] (TextBlock, Text: "APPLY & SAVE", Font: Syncopate-Bold, Size 18)
+
+--------------------------------------------------------------------------------
+2. ANIMATION TIMELINE REGISTRY:
+--------------------------------------------------------------------------------
+A. [Anim_SettingsEnter] (Duration: 0.25s):
+   - Track: SettingsMainModal.RenderScale (Key 0.0s: (0.95, 0.95) -> Key 0.25s: (1.0, 1.0))
+   - Track: SettingsMainModal.RenderOpacity (Key 0.0s: 0.0 -> Key 0.2s: 1.0)
+
+B. [Anim_TabSwitch] (Duration: 0.15s):
+   - Smooth horizontal slide of active page indicator line.
+
+--------------------------------------------------------------------------------
+3. SOUND BINDINGS:
+--------------------------------------------------------------------------------
+   - SFX_Hover: SoundCue'/Game/Audio/UI/SC_UI_Hover'
+   - SFX_Click: SoundCue'/Game/Audio/UI/SC_UI_Click'
+   - SFX_SliderTick: SoundCue'/Game/Audio/UI/SC_UI_SliderTick'
+   - SFX_SaveSuccess: SoundCue'/Game/Audio/UI/SC_UI_SaveConfirm'
+
+--------------------------------------------------------------------------------
+4. C++ METHOD CALLS & EVENT GRAPH:
+--------------------------------------------------------------------------------
+
+Variables:
+   - TargetGameInstance: UVELOCITYXGameInstance
+
+Event Construct:
+   1. TargetGameInstance = Cast<UVELOCITYXGameInstance>(GetGameInstance())
+   2. Play Sound 2D (SFX_Hover)
+   3. Play Animation (Anim_SettingsEnter)
+   4. Call LoadValuesFromGameInstance()
+
+Function LoadValuesFromGameInstance():
+   If (!IsValid(TargetGameInstance)) Return;
+   1. Graphics Tab:
+      - Slider_GraphicsQuality->SetValue((float)TargetGameInstance->GraphicsQuality) // EGraphicsQuality (0..3)
+      - Check_MotionBlur->SetIsChecked(TargetGameInstance->bMotionBlur)
+      - Check_AntiAliasing->SetIsChecked(TargetGameInstance->bAntiAliasing)
+      - Slider_FOV->SetValue(TargetGameInstance->FieldOfView)
+      - Update Text Labels (Txt_GfxQualityVal, Txt_FOVVal)
+   2. Audio Tab:
+      - Slider_MasterVol->SetValue(TargetGameInstance->MasterVolume)
+      - Slider_SFXVol->SetValue(TargetGameInstance->SFXVolume)
+      - Slider_MusicVol->SetValue(TargetGameInstance->MusicVolume)
+      - Update Volume Percent Text Labels
+
+On Clicked (Btn_ResetDefaults):
+   1. Play Sound 2D (SFX_Click)
+   2. If (IsValid(TargetGameInstance)):
+      - TargetGameInstance->ApplyDefaultSettings()
+      - LoadValuesFromGameInstance()
+
+On Clicked (Btn_ApplyAndSave):
+   1. Play Sound 2D (SFX_SaveSuccess)
+   2. If (IsValid(TargetGameInstance)):
+      - TargetGameInstance->GraphicsQuality = (EGraphicsQuality)RoundToInt(Slider_GraphicsQuality->GetValue())
+      - TargetGameInstance->bMotionBlur = Check_MotionBlur->IsChecked()
+      - TargetGameInstance->bAntiAliasing = Check_AntiAliasing->IsChecked()
+      - TargetGameInstance->FieldOfView = Slider_FOV->GetValue()
+      - TargetGameInstance->MasterVolume = Slider_MasterVol->GetValue()
+      - TargetGameInstance->SFXVolume = Slider_SFXVol->GetValue()
+      - TargetGameInstance->MusicVolume = Slider_MusicVol->GetValue()
+      - TargetGameInstance->SaveGameData() // Flushes to savegame.json
+   3. Remove from Parent (Self)
+
+On Clicked (Btn_Cancel / Btn_CloseCross):
+   1. Play Sound 2D (SFX_Click)
+   2. Remove from Parent (Self)
+================================================================================
+*/

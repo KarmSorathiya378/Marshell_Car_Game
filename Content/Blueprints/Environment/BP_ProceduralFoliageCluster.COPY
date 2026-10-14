@@ -1,0 +1,151 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_ProceduralFoliageCluster"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_ProceduralFoliageCluster
+Asset Path: /Game/Blueprints/Environment/BP_ProceduralFoliageCluster
+Target Parent: AActor
+Description:
+   Procedural nature system generating highway perimeter forests, rocky hills,
+   and distant mountain backdrops. Implements chunked Hierarchical Instanced
+   Static Meshes (HISM) and HLOD foliage clustering for 120 FPS high-speed racing.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── HISM_TallPineTrees (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Tree_ScotsPine_LOD (Height: 18m - 24m)
+  │     - Materials: M_Foliage_Bark_Master, M_Foliage_Leaves_TwoSided_Master
+  │     - Cull Distance: Min 35,000 cm (350m), Max 75,000 cm (750m) -> transitions to HLOD
+  │
+  ├── HISM_OakCanopyTrees (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Tree_BroadleafOak_LOD (Height: 14m - 20m)
+  │     - Materials: M_Foliage_Bark_Master, M_Foliage_Leaves_TwoSided_Master
+  │     - Cull Distance: Min 35,000 cm (350m), Max 75,000 cm (750m)
+  │
+  ├── HISM_RoadsideBushes (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Bush_MountainLaurel_LOD (Height: 1.5m - 2.5m)
+  │     - Material: M_Foliage_Leaves_TwoSided_Master
+  │     - Cull Distance: Min 12,000 cm (120m), Max 25,000 cm (250m)
+  │
+  ├── HISM_RoadsideGrassClusters (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Grass_DenseCluster_LOD (Radius: 150cm)
+  │     - Material: M_Foliage_Grass_Master
+  │     - Cull Distance: Min 3,500 cm (35m), Max 5,500 cm (55m)
+  │
+  ├── HISM_GraniteRocks (HierarchicalInstancedStaticMeshComponent)
+  │     - StaticMesh: SM_Rock_GraniteBoulder_LOD (Diameter: 2m - 6m)
+  │     - Material: M_Landscape_Master
+  │     - Cull Distance: Min 25,000 cm (250m), Max 60,000 cm (600m)
+  │
+  └── HISM_DistantMountainCards (HierarchicalInstancedStaticMeshComponent)
+        - StaticMesh: SM_Mountain_Ridge_5km (Span: 5000m, Height: 850m)
+        - Material: M_Distant_Mountain_Master
+        - Cull Distance: Max 2,500,000 cm (25 km)
+
+--------------------------------------------------------------------------------
+EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- ChunkLength (Float, Editable) = 20000.0 cm (200m per chunk)
+- ChunkIndex (Integer, Editable) = 0
+- RoadMarginClearance (Float, Editable) = 1800.0 cm (18m from centerline: keeps roadway clear)
+- ForestCorridorDepth (Float, Editable) = 45000.0 cm (450m forest depth each side)
+
+- TreeDensityPerChunk (Integer, Editable) = 180 (90 on left flank, 90 on right flank)
+- BushDensityPerChunk (Integer, Editable) = 140
+- RockDensityPerChunk (Integer, Editable) = 35
+- GrassDensityPerChunk (Integer, Editable) = 300
+
+--------------------------------------------------------------------------------
+GENERATION LOGIC (PER-CHUNK PROCEDURAL SCATTER):
+--------------------------------------------------------------------------------
+Function GenerateChunkFoliage():
+   float StartX = ChunkIndex * ChunkLength;
+   float EndX   = StartX + ChunkLength;
+
+   // 1. TALL TREES SCATTER (Left & Right Flanks)
+   FOR i from 0 to TreeDensityPerChunk - 1:
+      float PosX = FMath::RandRange(StartX, EndX);
+      float Side = FMath::RandBool() ? 1.0f : -1.0f;
+      // Offset from road: 22m to 420m away from center
+      float LateralDist = FMath::RandRange(RoadMarginClearance + 400.0f, ForestCorridorDepth);
+      float PosY = LateralDist * Side;
+      
+      // Terrain Elevation curve (Rolling hills rising away from highway)
+      // Height(y) = BaseOffset + (pow(LateralDist / 10000.0, 1.8) * 1200.0) + PerlinNoise(PosX, PosY)*400.0
+      float TerrainZ = CalculateTerrainHeight(PosX, PosY);
+
+      FTransform TreeTransform;
+      TreeTransform.SetLocation(FVector(PosX, PosY, TerrainZ));
+      TreeTransform.SetRotation(FRotator(0.0f, FMath::RandRange(0.0f, 360.0f), 0.0f).Quaternion());
+      float ScaleFactor = FMath::RandRange(0.85f, 1.35f);
+      TreeTransform.SetScale3D(FVector(ScaleFactor, ScaleFactor, ScaleFactor));
+
+      If (FMath::RandBool()):
+         HISM_TallPineTrees->AddInstance(TreeTransform);
+      Else:
+         HISM_OakCanopyTrees->AddInstance(TreeTransform);
+
+   // 2. BUSHES SCATTER (Near road verge and forest fringe)
+   FOR i from 0 to BushDensityPerChunk - 1:
+      float PosX = FMath::RandRange(StartX, EndX);
+      float Side = FMath::RandBool() ? 1.0f : -1.0f;
+      float LateralDist = FMath::RandRange(RoadMarginClearance + 100.0f, RoadMarginClearance + 3500.0f);
+      float PosY = LateralDist * Side;
+      float TerrainZ = CalculateTerrainHeight(PosX, PosY);
+
+      FTransform BushTransform(FRotator(0.0f, FMath::RandRange(0.0f, 360.0f), 0.0f),
+                               FVector(PosX, PosY, TerrainZ),
+                               FVector(FMath::RandRange(0.7f, 1.4f)));
+      HISM_RoadsideBushes->AddInstance(BushTransform);
+
+   // 3. ROCKS & EMBANKMENTS SCATTER
+   FOR i from 0 to RockDensityPerChunk - 1:
+      float PosX = FMath::RandRange(StartX, EndX);
+      float Side = FMath::RandBool() ? 1.0f : -1.0f;
+      float LateralDist = FMath::RandRange(RoadMarginClearance + 200.0f, ForestCorridorDepth * 0.7f);
+      float PosY = LateralDist * Side;
+      float TerrainZ = CalculateTerrainHeight(PosX, PosY) - 50.0f; // Embed into ground
+
+      FTransform RockTransform(FRotator(FMath::RandRange(-15.0f, 15.0f), FMath::RandRange(0.0f, 360.0f), 0.0f),
+                               FVector(PosX, PosY, TerrainZ),
+                               FVector(FMath::RandRange(0.8f, 2.5f)));
+      HISM_GraniteRocks->AddInstance(RockTransform);
+
+   // 4. DISTANT MOUNTAIN BACKDROPS (Every 25 chunks = every 5km)
+   If (ChunkIndex % 25 == 0):
+      // Mountain ridge on Left horizon at 8km distance
+      FVector MountainLeftLoc = FVector(StartX, -800000.0f, 15000.0f);
+      HISM_DistantMountainCards->AddInstance(FTransform(MountainLeftLoc));
+
+      // Mountain ridge on Right horizon at 10km distance
+      FVector MountainRightLoc = FVector(StartX + 50000.0f, 1000000.0f, 18000.0f);
+      HISM_DistantMountainCards->AddInstance(FTransform(MountainRightLoc));
+
+--------------------------------------------------------------------------------
+TERRAIN HEIGHT MATHEMATICAL FORMULA:
+--------------------------------------------------------------------------------
+float CalculateTerrainHeight(float X, float Y):
+   float DistFromRoad = FMath::Abs(Y) - RoadMarginClearance;
+   // Gentle ditch near road shoulder (-30cm to -60cm), then rising embankment
+   float Embankment = 0.0f;
+   If (DistFromRoad < 400.0f):
+      Embankment = -40.0f * FMath::Sin((DistFromRoad / 400.0f) * PI);
+   Else:
+      // Rising foothill elevation as we move outward
+      float NormalizedDist = (DistFromRoad - 400.0f) / 10000.0f;
+      Embankment = NormalizedDist * 650.0f + (NormalizedDist * NormalizedDist * 180.0f);
+
+   // Rolling hills wave along highway direction (wavelength 1500m)
+   float LongitudinalHills = FMath::Sin(X * 0.0004f) * 350.0f + FMath::Cos(X * 0.00015f) * 800.0f;
+
+   return Embankment + LongitudinalHills;
+================================================================================
+*/

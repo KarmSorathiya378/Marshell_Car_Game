@@ -1,0 +1,108 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_AtmosphericLightingSetup"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_AtmosphericLightingSetup
+Asset Path: /Game/Blueprints/Environment/BP_AtmosphericLightingSetup
+Target Parent: AActor
+Description:
+   Physically-based atmospheric lighting and post-processing controller.
+   Configures Sun (DirectionalLight), SkyAtmosphere, SkyLight (DFAO),
+   Volumetric Exponential Height Fog, and Unbound Post-Process Volume.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── DirectionalLight_Sun (DirectionalLightComponent)
+  │     - Mobility: Movable
+  │     - Intensity: 85,000.0 Lux (Direct high-noon/afternoon daylight)
+  │     - LightColor: (255, 248, 238) [5600K Clean Sunlight]
+  │     - AtmosphereSunLight: True (Atmosphere Sun Light Index 0)
+  │     - CastCloudShadows: True
+  │     - DynamicShadowDistanceMovableLight: 45,000.0 cm (450m cascade radius)
+  │     - CascadeDistributionExponent: 3.0
+  │     - NumDynamicShadowCascades: 4
+  │     - ContactShadowLength: 0.15 (Pin-sharp tire contact shadows)
+  │     - RelativeRotation: Pitch -26.0 deg, Yaw 142.0 deg, Roll 0.0 deg
+  │
+  ├── SkyAtmosphereComponent (SkyAtmosphereComponent)
+  │     - BottomRadius: 6360.0 km (Earth standard)
+  │     - AtmosphereHeight: 60.0 km
+  │     - GroundAlbedo: (0.15, 0.15, 0.15)
+  │     - RayleighScattering: (0.058, 0.135, 0.331) [Realistic blue atmosphere]
+  │     - RayleighExponentialDistribution: 8.0 km
+  │     - MieScattering: (0.00399, 0.00399, 0.00399) [Atmospheric aerosol haze]
+  │     - MieAbsorption: (0.00044, 0.00044, 0.00044)
+  │     - MieAnisotropy: 0.82 (Forward solar halo glare)
+  │     - MieExponentialDistribution: 1.2 km
+  │     - AbsorptionScale: 1.0 (Ozone layer absorption enabled)
+  │     - AerialPerspectiveViewDistanceScale: 1.2 (Enhances distance depth perception)
+  │
+  ├── SkyLight (SkyLightComponent)
+  │     - Mobility: Movable
+  │     - RealTimeCapture: True
+  │     - Intensity: 1.25 cd/m²
+  │     - LowerHemisphereIsBlack: False
+  │     - LowerHemisphereColor: (0.08, 0.07, 0.06) [Soil & asphalt bounce]
+  │     - DistanceFieldAmbientOcclusion (DFAO): Enabled
+  │
+  ├── ExponentialHeightFog (ExponentialHeightFogComponent)
+  │     - FogDensity: 0.0018
+  │     - FogHeightFalloff: 0.0008
+  │     - FogInscatteringLuminance: (0.75, 0.85, 1.0)
+  │     - FogCutoffDistance: 2,500,000.0 cm (25 km horizon cutoff)
+  │     - bEnableVolumetricFog: True
+  │     - VolumetricFogScatteringDistribution: 0.45
+  │     - VolumetricFogAlbedo: (0.9, 0.9, 0.95)
+  │     - VolumetricFogExtinctionScale: 1.0
+  │     - VolumetricFogViewDistance: 35,000.0 cm (350m high-res volumetric beams)
+  │
+  └── PostProcessVolume (PostProcessComponent)
+        - bUnbound: True (Affects whole 50km level)
+        - Settings:
+          * MOTION BLUR (Crucial for 300+ km/h speed feel):
+            - Amount: 0.65 (High-speed peripheral streak)
+            - MaxPercent: 100.0%
+            - TargetFPS: 60
+
+          * BLOOM:
+            - Method: BloomMethod_Convolution (Photorealistic lens bloom)
+            - Intensity: 0.75
+            - Threshold: 1.15
+            - ConvolutionScale: 1.0
+
+          * AUTO EXPOSURE / EYE ADAPTATION:
+            - Method: AutoExposureMethod_Histogram
+            - MinEV100: 8.0
+            - MaxEV100: 14.5
+            - LowPercent: 70.0%
+            - HighPercent: 95.0%
+            - SpeedUp: 3.0
+            - SpeedDown: 1.0
+
+          * COLOR GRADING (ACES Racing Palette):
+            - Tonemapper: ACES standard
+            - Contrast: 1.12
+            - Saturation: 1.06
+            - Gain: (1.02, 1.0, 0.98, 1.0)
+            - ColorTemperature: 6200.0 K
+            - LensVignetteIntensity: 0.28 (Focuses driver attention to center road)
+            - ChromaticAberration: 0.15 (High-speed camera sensor effect)
+
+--------------------------------------------------------------------------------
+EVENT GRAPH RUNTIME TICK:
+--------------------------------------------------------------------------------
+Event Tick(DeltaTime):
+   // Dynamic Sun Cycle (Optional smooth progression or fixed golden hour)
+   If (bEnableDynamicSunCycle):
+      SunAngle += DeltaTime * SunCycleSpeed;
+      DirectionalLight_Sun->SetRelativeRotation(FRotator(SunPitch, SunAngle, 0.0f));
+================================================================================
+*/

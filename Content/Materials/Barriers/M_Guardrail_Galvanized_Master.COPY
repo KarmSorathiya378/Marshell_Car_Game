@@ -1,0 +1,41 @@
+Begin Object Class=/Script/Engine.Material Name="M_Guardrail_Galvanized_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Opaque
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_Guardrail_Galvanized_Master
+Asset Path: /Game/Materials/Barriers/M_Guardrail_Galvanized_Master
+Target Use: Outer highway W-beam steel guardrails, posts, spacers, terminal ends
+
+PBR SPECIFICATION & PARAMETER REGISTRY:
+--------------------------------------------------------------------------------
+1. BASE COLOR (Albedo):
+   - Param "Zinc_BaseColor" (LinearColor, Default=(0.76, 0.78, 0.80, 1.0)):
+     Hot-dip galvanized zinc metal tone.
+   - Param "Zinc_Spangle_Scale" (Scalar, Default=35.0):
+     Micro crystalline flower pattern typical of hot-dip galvanization.
+   - Param "Rust_Streak_Tint" (LinearColor, Default=(0.48, 0.22, 0.10, 1.0)):
+     Oxidation around bolt holes and seams.
+
+2. METALLIC & ROUGHNESS:
+   - Param "Metallic_Value" (Scalar, Default=0.95): True galvanized metal.
+   - Param "Roughness_Base" (Scalar, Default=0.28): Zinc surface sheen.
+   - Param "Roughness_Weathered" (Scalar, Default=0.55): Weathered oxidation areas.
+   - Param "Rust_Metallic" (Scalar, Default=0.0): Rust is dielectric.
+
+3. DELINEATOR REFLECTORS (Cat-eyes):
+   - Param "bHasCatEyeReflector" (StaticSwitch, Default=False):
+   - Param "CatEyeColor" (LinearColor, Default=(1.0, 0.15, 0.05, 1.0)): Red for outer shoulder, Amber for median.
+   - Param "RetroreflectiveStrength" (Scalar, Default=5.0): Headlight reflection.
+================================================================================
+*/

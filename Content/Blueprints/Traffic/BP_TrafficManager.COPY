@@ -1,0 +1,104 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_TrafficManager"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_TrafficManager
+Asset Path: /Game/Blueprints/Traffic/BP_TrafficManager
+Target Parent: AActor
+Description:
+   Dynamic highway traffic spawner and object pool manager.
+   Maintains a moving window of civilian vehicles around the player vehicle
+   along the 50km highway, continuously recycling distant cars without runtime hitching.
+================================================================================
+
+EXPOSED CONFIGURATION PARAMETERS:
+--------------------------------------------------------------------------------
+- MaxActiveVehicles (Integer, Editable) = 35
+- SpawnDistanceAhead (Float, Editable) = 45000.0 cm (450m ahead of player)
+- DespawnDistanceBehind (Float, Editable) = 25000.0 cm (250m behind player)
+- DespawnDistanceAhead (Float, Editable) = 65000.0 cm (650m ahead of player)
+
+- LaneWidth (Float, Editable) = 375.0 cm
+- MedianWidth (Float, Editable) = 200.0 cm
+- LanesPerDirection (Integer, Editable) = 3
+- bEnableOncomingTraffic (Boolean, Editable) = True
+
+- SpeedProfiles (Array of Struct):
+  * Lane 1 (Slow / Trucks): Min 85.0 km/h, Max 95.0 km/h
+  * Lane 2 (Cruising Cars): Min 110.0 km/h, Max 125.0 km/h
+  * Lane 3 (Fast / Speeders): Min 140.0 km/h, Max 165.0 km/h
+
+--------------------------------------------------------------------------------
+RUNTIME TRAFFIC POOL LOGIC:
+--------------------------------------------------------------------------------
+Function InitializeTrafficPool():
+   // Pre-spawn pool of vehicles to eliminate runtime garbage collection
+   FOR i from 0 to MaxActiveVehicles - 1:
+      ABP_TrafficVehicleBase* NewVehicle = SpawnActor(BP_TrafficVehicleBase, FVector(0,0,-5000));
+      NewVehicle->SetActorHiddenInGame(true);
+      NewVehicle->SetActorTickEnabled(false);
+      VehiclePool.Add(NewVehicle);
+
+Function UpdateTrafficStreaming(float DeltaTime):
+   AActor* PlayerCar = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+   If (!PlayerCar) return;
+
+   float PlayerX = PlayerCar->GetActorLocation().X;
+
+   // 1. Check existing active vehicles for despawn / recycling
+   FOR EACH Vehicle in ActiveVehicles:
+      float VehicleX = Vehicle->GetActorLocation().X;
+      float DistDelta = VehicleX - PlayerX;
+
+      // If vehicle fell far behind or raced way too far ahead
+      If (DistDelta < -DespawnDistanceBehind || DistDelta > DespawnDistanceAhead):
+         RecycleVehicle(Vehicle);
+
+   // 2. Replenish traffic ahead of player if pool has available slots
+   While (ActiveVehicles.Num() < MaxActiveVehicles && VehiclePool.Num() > 0):
+      SpawnVehicleAhead(PlayerX);
+
+Function SpawnVehicleAhead(float PlayerX):
+   ABP_TrafficVehicleBase* Vehicle = VehiclePool.Pop();
+   
+   // Choose direction & lane
+   bool bSameDirection = (!bEnableOncomingTraffic) || FMath::RandBool();
+   float Dir = bSameDirection ? 1.0f : -1.0f;
+   int32 LaneIdx = FMath::RandRange(1, LanesPerDirection); // 1, 2, or 3
+
+   // Calculate Lane Y Center
+   float LaneOffset = (MedianWidth * 0.5f) + (LaneIdx - 0.5f) * LaneWidth;
+   float SpawnY = bSameDirection ? LaneOffset : -LaneOffset;
+
+   // Random position ahead of player (150m to 550m ahead)
+   float SpawnX = PlayerX + FMath::RandRange(15000.0f, SpawnDistanceAhead);
+   
+   // Check safety clearance to avoid spawning directly on another car
+   If (!IsSpawnPointClear(SpawnX, SpawnY)):
+      VehiclePool.Add(Vehicle);
+      return;
+
+   // Setup vehicle
+   FRotator SpawnRot = bSameDirection ? FRotator::ZeroRotator : FRotator(0.0f, 180.0f, 0.0f);
+   Vehicle->SetActorLocationAndRotation(FVector(SpawnX, SpawnY, 20.0f), SpawnRot);
+   Vehicle->TravelDirection = Dir;
+   Vehicle->LaneCenterY = SpawnY;
+   Vehicle->AssignedLaneIndex = LaneIdx;
+
+   // Assign lane speed
+   float MinSpd = SpeedProfiles[LaneIdx - 1].MinSpeed;
+   float MaxSpd = SpeedProfiles[LaneIdx - 1].MaxSpeed;
+   Vehicle->TargetSpeedKPH = FMath::RandRange(MinSpd, MaxSpd);
+   Vehicle->CurrentSpeedKPH = Vehicle->TargetSpeedKPH;
+
+   Vehicle->SetActorHiddenInGame(false);
+   Vehicle->SetActorTickEnabled(true);
+   ActiveVehicles.Add(Vehicle);
+================================================================================
+*/

@@ -1,0 +1,68 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_RoadsideSpawner"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_RoadsideSpawner
+Asset Path: /Game/Blueprints/Roadside/BP_RoadsideSpawner
+Target Parent: AActor
+Description:
+   Procedurally spawns and manages roadside elements along the entire 50km highway:
+   - Streetlights every 50 meters
+   - Overhead Gantries every 2.5 kilometers
+   - Emergency Phone Booths every 1.5 kilometers
+   - Kilometer milestone markers every 1.0 kilometer
+================================================================================
+
+EXPOSED CONFIGURATION PARAMETERS:
+--------------------------------------------------------------------------------
+- TotalHighwayLength (Float, Editable) = 5000000.0 cm (50 km)
+- HalfRoadWidth (Float, Editable) = 1675.0 cm (Outer edge of emergency shoulder)
+- MedianCenterY (Float, Editable) = 0.0 cm
+
+- StreetlightSpacing (Float, Editable) = 5000.0 cm (50 meters)
+- StreetlightPlacementMode (Enum: "MedianCenter", "OuterShoulders", "Both") = "MedianCenter"
+
+- GantrySpacing (Float, Editable) = 250000.0 cm (2.5 kilometers)
+- GantryZClearance (Float, Editable) = 620.0 cm
+
+- EmergencyPhoneSpacing (Float, Editable) = 150000.0 cm (1.5 kilometers)
+- EmergencyPhoneSide (Enum: "RightShoulderOnly", "BothShoulders") = "BothShoulders"
+
+- KilometerMarkerSpacing (Float, Editable) = 100000.0 cm (1.0 kilometer)
+
+--------------------------------------------------------------------------------
+CONSTRUCTION SCRIPT / SPAWN LOGIC:
+--------------------------------------------------------------------------------
+Function GenerateRoadsideAssets():
+   // 1. Spawn Streetlights (Every 50m = 1,000 poles over 50km)
+   int32 NumStreetlights = TotalHighwayLength / StreetlightSpacing;
+   FOR i from 1 to NumStreetlights:
+      float PosX = i * StreetlightSpacing;
+      FVector LightLoc = FVector(PosX, MedianCenterY, 0.0f);
+      SpawnActor(BP_HighwayStreetlight, LightLoc, FRotator::ZeroRotator);
+
+   // 2. Spawn Overhead Gantries (Every 2.5km = 20 gantries over 50km)
+   int32 NumGantries = TotalHighwayLength / GantrySpacing;
+   FOR j from 1 to NumGantries:
+      float PosX = j * GantrySpacing;
+      FVector GantryLoc = FVector(PosX, 0.0f, 0.0f);
+      SpawnActor(BP_OverheadGantrySign, GantryLoc, FRotator::ZeroRotator);
+
+   // 3. Spawn Emergency SOS Phone Booths (Every 1.5km = ~33 booths per side)
+   int32 NumBooths = TotalHighwayLength / EmergencyPhoneSpacing;
+   FOR k from 1 to NumBooths:
+      float PosX = k * EmergencyPhoneSpacing;
+      // Right shoulder (outward offset +80cm past guardrail):
+      FVector RightBoothLoc = FVector(PosX, HalfRoadWidth + 80.0f, 0.0f);
+      SpawnActor(BP_EmergencyPhoneBooth, RightBoothLoc, FRotator(0.0f, -90.0f, 0.0f));
+      // Left shoulder:
+      FVector LeftBoothLoc = FVector(PosX, -HalfRoadWidth - 80.0f, 0.0f);
+      SpawnActor(BP_EmergencyPhoneBooth, LeftBoothLoc, FRotator(0.0f, 90.0f, 0.0f));
+================================================================================
+*/

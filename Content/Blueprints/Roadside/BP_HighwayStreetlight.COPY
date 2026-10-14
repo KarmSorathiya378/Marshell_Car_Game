@@ -1,0 +1,70 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_HighwayStreetlight"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_HighwayStreetlight
+Asset Path: /Game/Blueprints/Roadside/BP_HighwayStreetlight
+Target Parent: AActor
+Description:
+   Modern dual-mast highway LED streetlight pole with physical lighting properties,
+   IES light profiles, and automatic day/night activation.
+================================================================================
+
+COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── PoleMesh (StaticMeshComponent)
+  │     - Mesh: SM_Streetlight_Pole_12m (Galvanized steel, 12m height, twin outreach arms)
+  │     - Material: M_Guardrail_Galvanized_Master
+  │
+  ├── FixtureLeftMesh (StaticMeshComponent)
+  │     - Mesh: SM_LED_CobraHead_Fixture
+  │     - Material: M_LightEmission_Master
+  │     - Relative Location: (0.0, -450.0, 1180.0)
+  │
+  ├── FixtureRightMesh (StaticMeshComponent)
+  │     - Mesh: SM_LED_CobraHead_Fixture
+  │     - Material: M_LightEmission_Master
+  │     - Relative Location: (0.0, 450.0, 1180.0)
+  │
+  ├── SpotLight_LeftLane (SpotLightComponent)
+  │     - Relative Location: (0.0, -450.0, 1150.0)
+  │     - Relative Rotation: Pitch -65.0, Yaw 0.0, Roll 0.0
+  │     - Intensity: 28,000.0 Lumens
+  │     - LightColor: (255, 235, 215) [4200K Neutral White LED]
+  │     - AttenuationRadius: 3800.0 cm
+  │     - InnerConeAngle: 35.0 deg
+  │     - OuterConeAngle: 72.0 deg
+  │     - SourceRadius: 25.0 cm
+  │     - SoftSourceRadius: 40.0 cm
+  │     - CastShadows: True (High/Epic settings)
+  │
+  └── SpotLight_RightLane (SpotLightComponent)
+        - Relative Location: (0.0, 450.0, 1150.0)
+        - Relative Rotation: Pitch -65.0, Yaw 180.0, Roll 0.0
+        - Intensity: 28,000.0 Lumens
+        - LightColor: (255, 235, 215)
+        - AttenuationRadius: 3800.0 cm
+        - InnerConeAngle: 35.0 deg
+        - OuterConeAngle: 72.0 deg
+
+--------------------------------------------------------------------------------
+VARIABLES & FUNCTIONS:
+--------------------------------------------------------------------------------
+- bIsNightTime (Boolean) = False
+- AutoTurnOnSunAngle (Float) = 5.0 deg
+
+Function SetLightState(bool bTurnOn):
+   SpotLight_LeftLane->SetVisibility(bTurnOn);
+   SpotLight_RightLane->SetVisibility(bTurnOn);
+   // Modulate emissive scalar on Fixture Material Dynamic Instance
+   FixtureLeftMesh->SetScalarParameterValueOnMaterials("EmissionIntensityNits", bTurnOn ? 50000.0f : 0.0f);
+   FixtureRightMesh->SetScalarParameterValueOnMaterials("EmissionIntensityNits", bTurnOn ? 50000.0f : 0.0f);
+================================================================================
+*/

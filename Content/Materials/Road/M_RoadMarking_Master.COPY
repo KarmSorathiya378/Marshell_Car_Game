@@ -1,0 +1,66 @@
+Begin Object Class=/Script/Engine.Material Name="M_RoadMarking_Master"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_Surface
+   BlendMode=BLEND_Masked
+   ShadingModel=MSM_DefaultLit
+   TwoSided=False
+   bUsedWithStaticLighting=True
+   bUsedWithInstancedStaticMeshes=True
+End Object
+
+/*
+================================================================================
+VELOCITY X - Master Material: M_RoadMarking_Master
+Asset Path: /Game/Materials/Road/M_RoadMarking_Master
+Target Use: Highway lane dividers (dashed white), shoulder lines (solid white/yellow),
+            center median markings, hazard chevrons
+
+PBR SPECIFICATION & PARAMETER REGISTRY:
+--------------------------------------------------------------------------------
+1. MARKING TYPES & COLOR PARAMETERS:
+   - Param "MarkingColor" (LinearColor, Default=(0.95, 0.95, 0.92, 1.0)):
+     Highway reflective thermoplastic white.
+   - Param "YellowMarkingColor" (LinearColor, Default=(1.0, 0.72, 0.08, 1.0)):
+     Median warning / emergency shoulder yellow.
+   - Param "bUseYellowLine" (StaticSwitch, Default=False)
+
+2. PROCEDURAL STRIPE GENERATOR (UV or Mesh based):
+   - Param "bProceduralDashPattern" (StaticSwitch, Default=False):
+     When true, generates 3m line / 9m gap pattern along U coordinate mathematically.
+   - Param "DashLength_cm" (Scalar, Default=300.0 cm): Standard highway stripe length.
+   - Param "DashGap_cm" (Scalar, Default=900.0 cm): Standard highway gap length.
+   - Param "LineWidth_cm" (Scalar, Default=15.0 cm): Standard lane line width.
+
+3. RETROREFLECTIVE GLASS BEAD SIMULATION:
+   - Param "BeadRetroreflectivity" (Scalar, Default=3.5):
+     Simulates micro glass spheres embedded in highway paint that retro-reflect headlight beams.
+     Implements Fresnel / View-Dependent back-scatter:
+     RetroGlow = pow(dot(CameraVector, LightVector), 8.0) * BeadRetroreflectivity;
+   - Param "Roughness_Dry" (Scalar, Default=0.38): Smooth thermoplastic resin.
+   - Param "Roughness_Wet" (Scalar, Default=0.12): Wet road marking.
+
+4. WEAR & CHIPPING MASK:
+   - Param "WearIntensity" (Scalar, Default=0.25): Controls paint flaking / chip-off.
+   - Param "WearNoiseTiling" (Scalar, Default=15.0): Frequency of edge disintegration.
+
+--------------------------------------------------------------------------------
+MATERIAL INSTANCES GENERATED:
+--------------------------------------------------------------------------------
+1. MI_LaneMarking_Dashed_White:
+   - MarkingColor = (0.95, 0.95, 0.92)
+   - bProceduralDashPattern = True
+   - DashLength = 300 cm, GapLength = 900 cm
+
+2. MI_LaneMarking_Solid_White:
+   - MarkingColor = (0.95, 0.95, 0.92)
+   - bProceduralDashPattern = False
+
+3. MI_LaneMarking_Solid_Yellow:
+   - bUseYellowLine = True
+   - YellowMarkingColor = (1.0, 0.72, 0.08)
+   - bProceduralDashPattern = False
+================================================================================
+*/

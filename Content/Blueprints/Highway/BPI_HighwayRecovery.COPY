@@ -1,0 +1,30 @@
+Begin Object Class=/Script/CoreUObject.Interface Name="BPI_HighwayRecovery"
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Interface: BPI_HighwayRecovery
+Asset Path: /Game/Blueprints/Highway/BPI_HighwayRecovery
+Target: Crash recovery, out-of-bounds reset, and respawn placement
+================================================================================
+
+INTERFACE FUNCTIONS:
+--------------------------------------------------------------------------------
+1. GetNearestHighwayRecoveryTransform
+   Inputs:
+     - CrashLocation (Vector): Current vehicle location
+     - bPreferSameDirection (Boolean): Maintain forward travel direction
+   Outputs:
+     - OutRecoveryTransform (Transform): Safe position on nearest lane center,
+       facing along highway axis (+X or -X), pitch/roll = 0, Z = +35 cm.
+     - OutLaneIndex (Integer): Assigned safe recovery lane
+     - bSuccess (Boolean)
+
+2. IsVehicleOutOfBounds
+   Inputs:
+     - VehicleLocation (Vector)
+   Outputs:
+     - bIsOutOfBounds (Boolean): True if lateral distance > Outer Guardrail limit
+     - LateralDistanceOffRoad (Float)
+================================================================================
+*/

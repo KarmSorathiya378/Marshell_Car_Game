@@ -1,0 +1,133 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_CameraManager"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/VELOCITYX.VelocityCameraManager
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_CameraManager
+Asset Path: /Game/Blueprints/Camera/BP_CameraManager
+Target Parent: AVelocityCameraManager (APlayerCameraManager)
+Description:
+   Dynamic 4-Mode Vehicle Camera Manager for VELOCITY X:
+   1. Chase Camera (smooth follow behind car, speed pullback)
+   2. Hood Camera (front hood driver perspective)
+   3. Cockpit Camera (interior cabin view with G-force head inertia)
+   4. Top Camera (bird's eye overview with yaw-only lock)
+   Features smooth cubic Hermite blending, collision sphere sweep,
+   dynamic speed FOV bonus, speed-based motion blur, and high-speed shake.
+================================================================================
+
+CLASS DEFAULTS CONFIGURATION:
+--------------------------------------------------------------------------------
+- ChasePreset:
+    * RelativeOffset: (-520.0, 0.0, 160.0)
+    * LookAtOffset: (80.0, 0.0, 50.0)
+    * BaseFOV: 85.0
+    * PositionLagSpeed: 10.0
+    * RotationLagSpeed: 8.0
+    * SpeedPullbackDistance: 140.0
+    * bEnableCollision: true
+    * bFollowYawOnly: false
+
+- HoodPreset:
+    * RelativeOffset: (135.0, 0.0, 75.0)
+    * LookAtOffset: (600.0, 0.0, 75.0)
+    * BaseFOV: 95.0
+    * PositionLagSpeed: 28.0
+    * RotationLagSpeed: 26.0
+    * SpeedPullbackDistance: 0.0
+    * bEnableCollision: false
+    * bFollowYawOnly: false
+
+- CockpitPreset:
+    * RelativeOffset: (-12.0, -34.0, 96.0)
+    * LookAtOffset: (500.0, -34.0, 96.0)
+    * BaseFOV: 90.0
+    * PositionLagSpeed: 30.0
+    * RotationLagSpeed: 30.0
+    * SpeedPullbackDistance: 0.0
+    * bEnableCollision: false
+    * bFollowYawOnly: false
+
+- TopPreset:
+    * RelativeOffset: (-150.0, 0.0, 1300.0)
+    * LookAtOffset: (0.0, 0.0, 0.0)
+    * BaseFOV: 70.0
+    * PositionLagSpeed: 7.0
+    * RotationLagSpeed: 6.0
+    * SpeedPullbackDistance: 220.0
+    * bEnableCollision: true
+    * bFollowYawOnly: true
+
+- Blending Settings:
+    * BlendDuration: 0.45s
+    * Interpolation: Hermite Smoothstep (3*t^2 - 2*t^3)
+
+- Speed Effects & Post Process:
+    * ReferenceMaxSpeedMPH: 200.0 MPH
+    * MaxSpeedFOVBonus: +18.0 deg
+    * FOVInterpSpeed: 4.0
+    * bEnableMotionBlurEffect: true
+    * MinMotionBlurAmount: 0.15
+    * MaxMotionBlurAmount: 0.85
+    * MotionBlurMax: Scales from 1.0 to 5.0 with speed
+
+- Collision Sweep:
+    * CameraCollisionChannel: ECC_Camera
+    * CollisionProbeRadius: 18.0 units
+    * CollisionRecoverySpeed: 8.0
+
+- High-Speed Shake:
+    * bEnableHighSpeedShake: true
+    * ShakeSpeedThresholdMPH: 60.0 MPH
+    * MaxShakePitchYawRoll: 0.75 deg
+    * ShakeFrequency: 22.0 Hz
+    * ImpactShakeClass: UVelocityImpactCameraShake
+
+--------------------------------------------------------------------------------
+EVENT GRAPH RUNTIME LOGIC:
+--------------------------------------------------------------------------------
+
+Event OnPossess / SetTargetVehicle(Vehicle):
+    TargetVehicle = Vehicle;
+    ResetCamera();
+
+Function CycleCameraMode():
+    Switch (CurrentCameraMode):
+        Case Chase   -> SetCameraMode(Hood)
+        Case Hood    -> SetCameraMode(Cockpit)
+        Case Cockpit -> SetCameraMode(Top)
+        Case Top     -> SetCameraMode(Chase)
+
+Function SetCameraMode(NewMode, bInstant):
+    PreviousCameraMode = CurrentCameraMode;
+    CurrentCameraMode = NewMode;
+    If (!bInstant):
+        bIsBlending = true;
+        BlendTimer = 0.0;
+        BlendStartLocation = CurrentLocation;
+        BlendStartRotation = CurrentRotation;
+        BlendStartFOV = CurrentFOV;
+    Else:
+        ResetCamera();
+
+Event UpdateViewTarget(OutVT, DeltaTime):
+    1. Calculate Target Transform based on Active Preset & Vehicle Transform.
+    2. If Blending: Slerp Rotation, Lerp Location & FOV using SmoothStep curve.
+    3. Else: VInterpTo Location (LagSpeed) & RInterpTo Rotation (RotLagSpeed).
+    4. If Preset.bEnableCollision:
+           SphereSweep(VehicleTarget, DesiredLocation, Radius 18);
+           If Hit: SafeLocation = HitPoint + ImpactNormal * 23;
+    5. Evaluate Speed:
+           SpeedRatio = SpeedMPH / 200.0;
+           DynamicFOV = Preset.BaseFOV + (18.0 * SpeedRatio);
+           MotionBlur = Lerp(0.15, 0.85, SpeedRatio);
+           If SpeedMPH > 60:
+               Apply procedural harmonic vibration (Pitch, Yaw, Roll, Z);
+    6. Apply Final Location, Rotation, FOV, and PostProcessSettings to OutVT.POV.
+================================================================================
+*/

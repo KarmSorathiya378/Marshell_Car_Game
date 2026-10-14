@@ -1,0 +1,164 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VELOCITYXPlayerState"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/Engine.PlayerState'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Player State Blueprint: BP_VELOCITYXPlayerState
+Asset Path: /Game/Blueprints/Player/BP_VELOCITYXPlayerState
+Target Parent: APlayerState
+Description:
+   Authoritative player state tracker for VELOCITY X:
+   - Real-time race timing (current time, split times, best lap, lap history)
+   - Dynamic checkpoint delta comparisons against career bests
+   - Telemetry analytics (peak top speed, average velocity, distance traveled)
+   - Comprehensive arcade scoring system (drift points, near-misses, clean racing, high-speed multipliers)
+   - Multiplier combo chaining and race completion status
+================================================================================
+
+1. VARIABLE DEFINITIONS:
+--------------------------------------------------------------------------------
+-- TIMING & LAP DATA --
+- CurrentRaceTime (Float) = 0.0f
+- BestLapTime (Float) = 999999.0f
+- LastLapTime (Float) = 0.0f
+- LapHistory (Array<Float>)
+- CurrentLap (Integer) = 1
+- TotalLaps (Integer) = 3
+- CheckpointSplits (Array<Float>)
+- CheckpointDeltas (Array<Float>)
+- CurrentSplitTime (Float) = 0.0f
+- bTimerRunning (Boolean) = false
+
+-- TELEMETRY & RECORDS --
+- TopSpeedMPH (Float) = 0.0f
+- TopSpeedKPH (Float) = 0.0f
+- AverageSpeedMPH (Float) = 0.0f
+- TotalDistanceTraveledKm (Float) = 0.0f
+- CumulativeSpeedAccumulator (Float) = 0.0f
+- SpeedSamplesCount (Integer) = 0
+
+-- SCORING & COMBO SYSTEM --
+- TotalScore (Int64) = 0
+- HighSpeedScore (Int64) = 0
+- DriftScore (Int64) = 0
+- NearMissScore (Int64) = 0
+- CleanDrivingBonus (Int64) = 0
+- NearMissCount (Integer) = 0
+- CurrentScoreMultiplier (Float) = 1.0f (Range: 1.0x to 5.0x)
+- ComboTimer (Float) = 0.0f (3.0s decay window)
+- bComboActive (Boolean) = false
+
+-- RACE STANDING & STATUS --
+- RacePosition (Integer) = 1
+- TotalRacers (Integer) = 8
+- bRaceCompleted (Boolean) = false
+- SelectedCarName (String) = "APEX GT-1"
+
+--------------------------------------------------------------------------------
+2. EVENT GRAPH IMPLEMENTATION:
+--------------------------------------------------------------------------------
+
+Event Tick(DeltaTime):
+    // 1. UPDATE TIMER IF RUNNING
+    If (bTimerRunning && !bRaceCompleted):
+        CurrentRaceTime += DeltaTime;
+        CurrentSplitTime += DeltaTime;
+
+    // 2. COMBO MULTIPLIER DECAY
+    If (bComboActive):
+        ComboTimer -= DeltaTime;
+        If (ComboTimer <= 0.0f):
+            CurrentScoreMultiplier = 1.0f;
+            bComboActive = false;
+
+--------------------------------------------------------------------------------
+3. CORE BLUEPRINT FUNCTIONS:
+--------------------------------------------------------------------------------
+
+Function StartRaceTiming():
+    CurrentRaceTime = 0.0f;
+    CurrentSplitTime = 0.0f;
+    bTimerRunning = true;
+    bRaceCompleted = false;
+    TotalScore = 0;
+    SpeedSamplesCount = 0;
+    CumulativeSpeedAccumulator = 0.0f;
+
+Function RecordCheckpointSplit(CheckpointIndex, SplitTime, SpeedKPH):
+    // Record split timestamp
+    CheckpointSplits.Add(SplitTime);
+    CurrentSplitTime = 0.0f;
+    
+    // Calculate speed bonus
+    If (SpeedKPH > 300.0f):
+        AddScore(500 * CurrentScoreMultiplier, "HIGH SPEED SPLIT");
+    Else:
+        AddScore(200 * CurrentScoreMultiplier, "CHECKPOINT CLEAR");
+
+Function RecordCompletedLap(LapTime):
+    LapHistory.Add(LapTime);
+    LastLapTime = LapTime;
+    If (LapTime < BestLapTime):
+        BestLapTime = LapTime;
+        AddScore(2500, "NEW LAP RECORD!");
+    CurrentLap++;
+
+Function AddScore(BasePoints, ScoreReason):
+    Int64 PointsWithMultiplier = BasePoints * CurrentScoreMultiplier;
+    TotalScore += PointsWithMultiplier;
+    
+    // Refresh combo chain
+    ComboTimer = 3.0f;
+    bComboActive = true;
+    If (CurrentScoreMultiplier < 5.0f):
+        CurrentScoreMultiplier = FMath::Min(CurrentScoreMultiplier + 0.1f, 5.0f);
+
+Function AddDriftPoints(DriftPointsToAdd):
+    DriftScore += DriftPointsToAdd;
+    AddScore(DriftPointsToAdd, "DRIFT");
+
+Function AddNearMiss():
+    NearMissCount++;
+    NearMissScore += (1000 * CurrentScoreMultiplier);
+    AddScore(1000, "CLOSE CALL NEAR MISS");
+
+Function UpdateTelemetry(SpeedMPH, DeltaTime):
+    // Update top speeds
+    If (SpeedMPH > TopSpeedMPH):
+        TopSpeedMPH = SpeedMPH;
+        TopSpeedKPH = SpeedMPH * 1.60934f;
+    
+    // Accumulate average speed
+    CumulativeSpeedAccumulator += SpeedMPH;
+    SpeedSamplesCount++;
+    AverageSpeedMPH = CumulativeSpeedAccumulator / SpeedSamplesCount;
+    
+    // Distance traveled (MPH -> Km/h -> Km in delta)
+    Float SpeedKPH = SpeedMPH * 1.60934f;
+    Float DistanceThisTickKm = (SpeedKPH / 3600.0f) * DeltaTime;
+    TotalDistanceTraveledKm += DistanceThisTickKm;
+
+    // High speed continuous scoring
+    If (SpeedMPH > 200.0f):
+        HighSpeedScore += (Int64)(50.0f * DeltaTime * CurrentScoreMultiplier);
+        TotalScore += (Int64)(50.0f * DeltaTime * CurrentScoreMultiplier);
+
+Function FinishRace(FinalTime, TopSpeed):
+    bTimerRunning = false;
+    bRaceCompleted = true;
+    CurrentRaceTime = FinalTime;
+    If (TopSpeed > TopSpeedKPH):
+        TopSpeedKPH = TopSpeed;
+        TopSpeedMPH = TopSpeed / 1.60934f;
+    
+    // Clean racing bonus if finished under target par
+    If (CurrentRaceTime < 300.0f):
+        CleanDrivingBonus = 10000;
+        TotalScore += CleanDrivingBonus;
+================================================================================
+*/

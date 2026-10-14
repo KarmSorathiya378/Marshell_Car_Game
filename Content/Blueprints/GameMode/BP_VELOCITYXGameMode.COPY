@@ -1,0 +1,168 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VELOCITYXGameMode"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/VELOCITYX.VELOCITYXGameMode'
+   Interfaces(0)=(Interface=Class'/Game/Blueprints/Core/BPI_RaceProgression')
+End Object
+
+/*
+================================================================================
+VELOCITY X - Game Mode Blueprint: BP_VELOCITYXGameMode
+Asset Path: /Game/Blueprints/GameMode/BP_VELOCITYXGameMode
+Target Parent: AVELOCITYXGameMode (AGameModeBase)
+Implemented Interface: BPI_RaceProgression
+Description:
+   Core Master Game Mode Blueprint orchestrating VELOCITY X:
+   - Configures default game framework classes (PlayerController, PlayerState, DefaultPawn)
+   - Manages state transitions (MainMenu, CarSelect, Racing, Paused, GameOver)
+   - Dynamic vehicle selection and spawning (Supercar, TrackSpec, Hypercar)
+   - Authoritative race progression logic: Start Line countdown, 5km Split Checkpoints, and Finish Line
+   - Lap stopwatch synchronization and persistent GameInstance best time saving
+================================================================================
+
+1. CLASS DEFAULTS CONFIGURATION:
+--------------------------------------------------------------------------------
+- PlayerControllerClass = Class'/Game/Blueprints/Player/BP_VELOCITYXPlayerController'
+- PlayerStateClass = Class'/Game/Blueprints/Player/BP_VELOCITYXPlayerState'
+- DefaultPawnClass = Class'/Game/Car/BP_Supercar'
+- HUDClass = Class'/Script/Engine.HUD'
+- GameStateClass = Class'/Script/Engine.GameStateBase'
+- SpectatorClass = Class'/Script/Engine.SpectatorPawn'
+
+- DefaultCarType = ECarType::Supercar
+- TotalCheckpoints = 10 (Every 5km along 50km corridor)
+- RaceDistanceKm = 50.0f
+- CountdownDuration = 3.0f
+
+-- VEHICLE BLUEPRINT ASSET MAPPING --
+- SupercarClass = Class'/Game/Car/BP_Supercar'
+- TrackSupercarClass = Class'/Game/Car/BP_TrackSupercar'
+- HypercarClass = Class'/Game/Car/BP_Hypercar'
+
+--------------------------------------------------------------------------------
+2. EVENT GRAPH IMPLEMENTATION:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+    // 1. INITIALIZE GAMEPLAY STATE
+    CurrentState = EGameState::MainMenu;
+    ElapsedTime = 0.0f;
+    bTimerRunning = false;
+    
+    // 2. RETRIEVE GAME INSTANCE AND LOAD SAVED PROFILE
+    AVELOCITYXGameInstance* GameInst = Cast<AVELOCITYXGameInstance>(GetGameInstance());
+    If (GameInst):
+        GameInst->LoadGameData();
+        PrintString("VELOCITY X GameMode: Save data loaded from GameInstance.");
+
+    // 3. BROADCAST INITIAL STATE TO PLAYER CONTROLLER & UI
+    OnStateChangeUI(CurrentState);
+
+Event OnStateChangeUI(NewState):
+    // FORWARD STATE CHANGE TO ALL CONNECTED PLAYER CONTROLLERS
+    For Each PlayerController in World:
+        BP_VELOCITYXPlayerController* VelocityPC = Cast<BP_VELOCITYXPlayerController>(PlayerController);
+        If (VelocityPC):
+            VelocityPC->SwitchGameState(NewState);
+
+--------------------------------------------------------------------------------
+3. CAR SELECTION & SPAWNING:
+--------------------------------------------------------------------------------
+
+Function SelectCar(CarType):
+    SelectedCarType = CarType;
+    
+    // 1. DETERMINE VEHICLE BLUEPRINT CLASS
+    UClass* ChosenCarClass = SupercarClass;
+    Switch (CarType):
+        Case ECarType::TrackSpec:
+            ChosenCarClass = TrackSupercarClass;
+            Break;
+        Case ECarType::Hypercar:
+            ChosenCarClass = HypercarClass;
+            Break;
+        Case ECarType::Supercar:
+        Default:
+            ChosenCarClass = SupercarClass;
+            Break;
+    
+    // 2. FIND ACTIVE PLAYER CONTROLLER
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    If (PC):
+        // Destroy existing possessed car if present
+        APawn* CurrentPawn = PC->GetPawn();
+        FVector SpawnLocation = FVector(0.0f, 0.0f, 100.0f);
+        FRotator SpawnRotation = FRotator::ZeroRotator;
+        
+        If (CurrentPawn):
+            SpawnLocation = CurrentPawn->GetActorLocation();
+            SpawnRotation = CurrentPawn->GetActorRotation();
+            PC->UnPossess();
+            CurrentPawn->Destroy();
+        
+        // Spawn chosen vehicle Blueprint
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+        APawn* NewVehicle = GetWorld()->SpawnActor<APawn>(ChosenCarClass, SpawnLocation, SpawnRotation, SpawnParams);
+        
+        If (NewVehicle):
+            PC->Possess(NewVehicle);
+            PrintString("Spawned and possessed selected car.");
+
+--------------------------------------------------------------------------------
+4. RACE PROGRESSION INTERFACE IMPLEMENTATION (BPI_RaceProgression):
+--------------------------------------------------------------------------------
+
+// 4.1 START LINE CROSSED
+Event OnStartLineCrossed(PassingVehicle, StartTimestamp):
+    PrintString("BPI_RaceProgression: START LINE CROSSED!");
+    
+    // 1. Start authoritative GameMode stopwatch
+    StartTimer();
+    
+    // 2. Notify Player State to commence tracking
+    APlayerController* PC = Cast<APlayerController>(PassingVehicle->GetInstigatorController());
+    If (PC):
+        BP_VELOCITYXPlayerState* PS = Cast<BP_VELOCITYXPlayerState>(PC->PlayerState);
+        If (PS):
+            PS->StartRaceTiming();
+
+// 4.2 CHECKPOINT PASSED
+Event OnCheckpointPassed(CheckpointIndex, DistanceKm, SplitTime, SpeedKPH, SpeedMPH, PassingVehicle):
+    PrintString("BPI_RaceProgression: Checkpoint Passed: " + String(CheckpointIndex) + " (" + String(DistanceKm) + " km)");
+    
+    APlayerController* PC = Cast<APlayerController>(PassingVehicle->GetInstigatorController());
+    If (PC):
+        BP_VELOCITYXPlayerState* PS = Cast<BP_VELOCITYXPlayerState>(PC->PlayerState);
+        If (PS):
+            PS->RecordCheckpointSplit(CheckpointIndex, SplitTime, SpeedKPH);
+
+// 4.3 FINISH LINE CROSSED
+Event OnFinishLineCrossed(PassingVehicle, TotalRaceTime, TopSpeedKPH):
+    PrintString("BPI_RaceProgression: FINISH LINE CROSSED! Time: " + String(TotalRaceTime) + "s");
+    
+    // 1. Stop timer
+    PauseTimer();
+    
+    // 2. Finalize Player State analytics & scoring
+    APlayerController* PC = Cast<APlayerController>(PassingVehicle->GetInstigatorController());
+    If (PC):
+        BP_VELOCITYXPlayerState* PS = Cast<BP_VELOCITYXPlayerState>(PC->PlayerState);
+        If (PS):
+            PS->FinishRace(TotalRaceTime, TopSpeedKPH);
+            
+            // 3. Save best lap time to GameInstance
+            AVELOCITYXGameInstance* GameInst = Cast<AVELOCITYXGameInstance>(GetGameInstance());
+            If (GameInst):
+                Int32 CarIndex = (Int32)SelectedCarType;
+                If (TotalRaceTime < GameInst->BestLapTimes[CarIndex] || GameInst->BestLapTimes[CarIndex] == 0):
+                    GameInst->BestLapTimes[CarIndex] = (Int32)TotalRaceTime;
+                GameInst->CompletedRaces++;
+                GameInst->SaveGameData();
+    
+    // 4. Transition Game State to GameOver / Results Screen
+    SetGameState(EGameState::GameOver);
+================================================================================
+*/

@@ -1,0 +1,32 @@
+Begin Object Class=/Script/PhysicsCore.PhysicalMaterial Name="PM_Barrier"
+   Friction=0.220000
+   FrictionCombineMode=Min
+   bOverrideFrictionCombineMode=True
+   Restitution=0.350000
+   RestitutionCombineMode=Average
+   bOverrideRestitutionCombineMode=True
+   Density=2.800000
+   RaiseMassToPower=1.000000
+   DestructibleDamageThresholdScale=1.000000
+   SurfaceType=SurfaceType3
+End Object
+
+/*
+================================================================================
+VELOCITY X - Physical Material: PM_Barrier
+Asset Path: /Game/Materials/Physics/PM_Barrier
+Target: Concrete New Jersey Barriers, Galvanized W-Beam Guardrails, Bridge Abutments
+
+PROPERTIES & IMPACT DYNAMICS:
+--------------------------------------------------------------------------------
+- Friction: 0.22 (Low glance-off friction: prevents vehicle from "snagging" and flipping;
+             promotes high-speed wall-riding deflection)
+- Friction Combine Mode: Min
+- Restitution: 0.35 (Elastic barrier bounce to redirect vehicle back into lane)
+- Surface Type: SurfaceType3 (SurfaceType_MetalBarrier / ConcreteBarrier)
+  * Triggers: Metal scraping spark showers, concrete dust debris, high-frequency impact clang
+- Associated Materials:
+  * /Game/Materials/Barriers/M_Concrete_Barrier_Master
+  * /Game/Materials/Barriers/M_Guardrail_Galvanized_Master
+================================================================================
+*/

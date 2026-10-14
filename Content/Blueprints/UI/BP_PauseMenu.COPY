@@ -1,0 +1,164 @@
+Begin Object Class=/Script/UMGEditor.WidgetBlueprint Name="BP_PauseMenu"
+   Begin Object Class=/Script/Engine.WidgetTree Name="WidgetTree"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   Begin Object Name="WidgetTree"
+   End Object
+   Begin Object Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/UMG.UserWidget'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Widget Blueprint: BP_PauseMenu
+Asset Path: /Game/Blueprints/UI/BP_PauseMenu
+Target Resolution: 1920 x 1080 (Canvas Panel Native)
+C++ Integration: AVelocityPlayerController, AVELOCITYXGameMode, UVELOCITYXGameInstance
+Author: UI Designer (Nimbus)
+================================================================================
+
+1. WIDGET HIERARCHY TREE (1920x1080 Layout Canvas):
+--------------------------------------------------------------------------------
+[RootCanvas] (CanvasPanel)
+  |
+  |-- [FrostedGlassBackdrop] (Image)
+  |     Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+  |     Brush: Material'/Game/Materials/UI/M_UI_BackgroundBlur'
+  |     Z-Order: 0
+  |
+  |-- [PauseCardModal] (VerticalBox)
+  |     Anchors: Center (Min: 0.5,0.5, Max: 0.5,0.5) | Alignment: (0.5, 0.5)
+  |     Position: X: 0, Y: 0 | Size: X: 520, Y: 600
+  |     Z-Order: 10
+  |     |
+  |     |-- [PauseHeader] (VerticalBox, Margin: (0, 0, 0, 30))
+  |     |     |-- [Txt_PauseTitle] (TextBlock)
+  |     |     |     Text: "RACE PAUSED"
+  |     |     |     Font: Syncopate-Bold, Size 36, Color: Pure White
+  |     |     |     Alignment: Center
+  |     |     |-- [Txt_PauseSubtitle] (TextBlock)
+  |     |     |     Text: "// SIMULATION SUSPENDED"
+  |     |     |     Font: Rajdhani-SemiBold, Size 14, Color: Cyan
+  |     |     |     Alignment: Center
+  |     |     |-- [HeaderLine] (Image, Size: 480 x 2, Color: Cyan, Margin: (0, 10, 0, 0))
+  |     |
+  |     |-- [RaceSummaryStatsBox] (Border, Margin: (0, 0, 0, 25))
+  |     |     Background: SlateColor(0.04, 0.06, 0.09, 0.8) | Border: 1px SlateGray
+  |     |     Padding: (20, 12, 20, 12)
+  |     |     |-- [StatsRows] (VerticalBox)
+  |     |           |-- [Row_CurrentTime] (HorizontalBox)
+  |     |           |     |-- [Lbl_Time] (TextBlock, Text: "CURRENT TIME:", Font: Rajdhani-Medium, Size 14, Color: Gray)
+  |     |           |     |-- [Spacer_S1] (Spacer, Size: 1.0 Fill)
+  |     |           |     |-- [Txt_PauseCurrentTime] (TextBlock, Text: "00:00.000", Font: Orbitron-Bold, Size 14, Color: White)
+  |     |           |-- [Row_CarSpec] (HorizontalBox, Margin: (0, 4, 0, 0))
+  |     |                 |-- [Lbl_Car] (TextBlock, Text: "VEHICLE SPEC:", Font: Rajdhani-Medium, Size 14, Color: Gray)
+  |     |                 |-- [Spacer_S2] (Spacer, Size: 1.0 Fill)
+  |     |                 |-- [Txt_PauseCarName] (TextBlock, Text: "APEX GT-1", Font: Rajdhani-Bold, Size 14, Color: Cyan)
+  |     |
+  |     |-- [PauseButtonsStack] (VerticalBox)
+  |           |-- [Btn_Resume] (Button)
+  |           |     Size: 480 x 58 | Margin: (0, 0, 0, 14)
+  |           |     Style: Normal (Navy Blue / Carbon), Hovered (Velocity Crimson, 3px Glow)
+  |           |     Child: [Txt_Resume] (TextBlock, Text: "RESUME RACE", Font: Rajdhani-Bold, Size 20)
+  |           |
+  |           |-- [Btn_Restart] (Button)
+  |           |     Size: 480 x 58 | Margin: (0, 0, 0, 14)
+  |           |     Child: [Txt_Restart] (TextBlock, Text: "RESTART RACE", Font: Rajdhani-Bold, Size 20)
+  |           |
+  |           |-- [Btn_Settings] (Button)
+  |           |     Size: 480 x 58 | Margin: (0, 0, 0, 14)
+  |           |     Child: [Txt_Settings] (TextBlock, Text: "SETTINGS", Font: Rajdhani-Bold, Size 20)
+  |           |
+  |           |-- [Btn_ExitToMenu] (Button)
+  |                 Size: 480 x 58 | Margin: (0, 0, 0, 14)
+  |                 Child: [Txt_Exit] (TextBlock, Text: "EXIT TO MAIN MENU", Font: Rajdhani-Bold, Size 20)
+  |
+  |-- [ScreenFadeCurtain] (Border)
+        Anchors: Full Screen (Min: 0,0, Max: 1,1) | Offsets: (0,0,0,0)
+        Background Color: LinearColor(0,0,0,1)
+        Visibility: HitTestInvisible
+        Z-Order: 100
+
+--------------------------------------------------------------------------------
+2. ANIMATION TIMELINE REGISTRY:
+--------------------------------------------------------------------------------
+A. [Anim_PauseOpen] (Duration: 0.25s):
+   - Track: FrostedGlassBackdrop.RenderOpacity (Key 0.0s: 0.0 -> Key 0.25s: 1.0)
+   - Track: PauseCardModal.RenderScale (Key 0.0s: (0.9, 0.9) -> Key 0.25s: (1.0, 1.0), EaseOut Back)
+   - Track: PauseCardModal.RenderOpacity (Key 0.0s: 0.0 -> Key 0.2s: 1.0)
+
+B. [Anim_PauseClose] (Duration: 0.2s):
+   - Track: FrostedGlassBackdrop.RenderOpacity (Key 0.0s: 1.0 -> Key 0.2s: 0.0)
+   - Track: PauseCardModal.RenderScale (Key 0.0s: (1.0, 1.0) -> Key 0.2s: (0.95, 0.95))
+
+--------------------------------------------------------------------------------
+3. SOUND BINDINGS:
+--------------------------------------------------------------------------------
+   - SFX_PauseIn: SoundCue'/Game/Audio/UI/SC_UI_PauseOn'
+   - SFX_PauseOut: SoundCue'/Game/Audio/UI/SC_UI_PauseOff'
+   - SFX_Hover: SoundCue'/Game/Audio/UI/SC_UI_Hover'
+   - SFX_Click: SoundCue'/Game/Audio/UI/SC_UI_Click'
+
+--------------------------------------------------------------------------------
+4. C++ METHOD CALLS & EVENT GRAPH:
+--------------------------------------------------------------------------------
+
+Variables:
+   - VelocityPC: AVelocityPlayerController
+   - GameModeRef: AVELOCITYXGameMode
+
+Event Construct:
+   1. VelocityPC = Cast<AVelocityPlayerController>(GetPlayerController(0))
+   2. GameModeRef = Cast<AVELOCITYXGameMode>(GetWorld()->GetAuthGameMode())
+   3. Set Game Paused = True
+   4. Set Input Mode Game And UI (InWidgetToFocus = Btn_Resume)
+   5. Set Show Mouse Cursor = True
+   6. Play Sound 2D (SFX_PauseIn)
+   7. Play Animation (Anim_PauseOpen)
+   8. Ingest Live Race Summary:
+      - Elapsed = GameModeRef ? GameModeRef->GetElapsedTime() : 0.0f
+      - Txt_PauseCurrentTime->SetText(FormatMMSSmmm(Elapsed))
+      - CarType = GameModeRef ? GameModeRef->GetSelectedCarType() : ECarType::Supercar
+      - Switch (CarType):
+          Case Supercar:      Txt_PauseCarName->SetText("APEX GT-1 (SUPERCAR)");
+          Case TrackSupercar: Txt_PauseCarName->SetText("VALKYRIE RS (TRACK SUPERCAR)");
+          Case Hypercar:      Txt_PauseCarName->SetText("NEBULA HYPER-V (HYPERCAR)");
+
+On Clicked (Btn_Resume):
+   1. Play Sound 2D (SFX_Click)
+   2. Play Sound 2D (SFX_PauseOut)
+   3. Play Animation (Anim_PauseClose)
+   4. Set Timer by Event (Delay = 0.2s):
+      - Set Game Paused = False
+      - Set Input Mode Game Only
+      - Set Show Mouse Cursor = False
+      - If (IsValid(VelocityPC)):
+          VelocityPC->ActionTogglePause() // Re-enables player input and clears pause flag
+      - Remove from Parent (Self)
+
+On Clicked (Btn_Restart):
+   1. Play Sound 2D (SFX_Click)
+   2. Set Game Paused = False
+   3. If (IsValid(GameModeRef)):
+      - GameModeRef->ResetTimer()
+      - GameModeRef->StartTimer()
+   4. If (IsValid(VelocityPC)):
+      - VelocityPC->ActionResetCar() // Repositions vehicle onto track centerline
+   5. Set Input Mode Game Only
+   6. Set Show Mouse Cursor = False
+   7. Remove from Parent (Self)
+
+On Clicked (Btn_Settings):
+   1. Play Sound 2D (SFX_Click)
+   2. Create Widget (BP_Settings) -> Add to Viewport (Z-Order = 50)
+
+On Clicked (Btn_ExitToMenu):
+   1. Play Sound 2D (SFX_Click)
+   2. Set Game Paused = False
+   3. If (IsValid(GameModeRef)):
+      - GameModeRef->SetGameState(EGameState::MainMenu)
+   4. Open Level "MainMenu_Map"
+================================================================================
+*/

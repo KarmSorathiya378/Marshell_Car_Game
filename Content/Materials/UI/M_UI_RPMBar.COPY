@@ -1,0 +1,113 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_RPMBar"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_RPMBar
+Asset Path: /Game/Materials/UI/M_UI_RPMBar
+Target Use: High-Fidelity Tachometer Curve / Segmented RPM Bar for BP_VelocityHUD
+Resolution Target: 1920x1080 UI canvas (Native 720x120 HUD tachometer bar)
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. TACHOMETER SEGMENTATION & ARC GEOMETRY:
+   - Dynamic angled/slanted segmented tachometer bar (horizontal chevron array).
+   - 28 discrete LED-style RPM segments with micro-gaps.
+   - Smooth progress fill with peak RPM trailing dot.
+   - Redline threshold warning: At >= 85% RPM (typically 7500+ RPM), enters redline.
+   - Redline Strobing: Flashes rapidly (12 Hz) when redline is hit or engine hits rev limiter.
+
+2. DYNAMIC PARAMETER REGISTRY (Exposed to Widget Dynamic Material Instance):
+   - "CurrentRPMRatio" (Scalar, Range [0.0 - 1.0], Default=0.0):
+     CurrentRPM / MaxRPM (e.g. 7200 / 9000 = 0.80).
+   - "RedlineRatioThreshold" (Scalar, Default=0.82):
+     Threshold where RPM segments switch to emergency redline mode.
+   - "IsRedlineActive" (Scalar, Range [0.0 or 1.0], Default=0.0):
+     Binary/Continuous trigger for shift-light flash.
+   - "StrobeSpeed" (Scalar, Default=16.0):
+     Oscillation speed of redline strobe flash.
+   - "Color_Idle" (LinearColor, Default=(0.0, 0.7, 1.0, 1.0) - Cyan/Electric Blue):
+     0 - 3000 RPM.
+   - "Color_Mid" (LinearColor, Default=(0.1, 0.95, 0.25, 1.0) - Neon Emerald):
+     3000 - 6500 RPM.
+   - "Color_High" (LinearColor, Default=(1.0, 0.8, 0.0, 1.0) - Solar Amber):
+     6500 - 7500 RPM.
+   - "Color_Redline" (LinearColor, Default=(1.0, 0.05, 0.05, 1.0) - Crimson Overrev):
+     7500 - 9000 RPM.
+   - "SegmentCount" (Scalar, Default=28.0):
+     Total discrete LED bars across tachometer.
+   - "SlantAngle" (Scalar, Default=0.25):
+     Italicized racing slant factor.
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Slanted Coordinate System
+   float SlantedX = InUV.x + (InUV.y * SlantAngle);
+   float TotalLength = 1.0 + SlantAngle;
+   float NormalizedX = saturate(SlantedX / TotalLength);
+
+   // 2. Discrete LED Segment Grid
+   float RawSegmentCoord = NormalizedX * SegmentCount;
+   float SegmentIndex = floor(RawSegmentCoord);
+   float SegmentFraction = frac(RawSegmentCoord);
+   float SegmentNormalized = SegmentIndex / SegmentCount;
+
+   // Segment Gap Mask (82% lit bar, 18% black separator gap)
+   float GapMask = step(0.18, SegmentFraction);
+
+   // Vertical Height Mask (Smooth tapered height at lower RPMs)
+   float MinHeight = 0.35;
+   float DynamicHeight = lerp(MinHeight, 1.0, SegmentNormalized);
+   float HeightCenterDist = abs(InUV.y - 0.5) * 2.0;
+   float HeightMask = step(HeightCenterDist, DynamicHeight);
+
+   // 3. Active Fill Mask
+   float IsLit = step(SegmentNormalized, CurrentRPMRatio);
+
+   // 4. Color Ramp Evaluation
+   float3 BarColor;
+   if (SegmentNormalized < 0.35)
+   {
+       BarColor = lerp(Color_Idle.rgb, Color_Mid.rgb, SegmentNormalized / 0.35);
+   }
+   else if (SegmentNormalized < RedlineRatioThreshold)
+   {
+       float t = (SegmentNormalized - 0.35) / (RedlineRatioThreshold - 0.35);
+       BarColor = lerp(Color_Mid.rgb, Color_High.rgb, t);
+   }
+   else
+   {
+       BarColor = Color_Redline.rgb;
+   }
+
+   // 5. Redline Strobe Pulsing Effect
+   float RedlineTrigger = step(RedlineRatioThreshold, CurrentRPMRatio) * IsRedlineActive;
+   float FlashPhase = sin(View.GameTime * StrobeSpeed);
+   float FlashMultiplier = (RedlineTrigger > 0.5) ? (FlashPhase > 0.0 ? 3.0 : 0.4) : 1.0;
+
+   // Overrev Whole-Bar Warning (Entire tachometer pulses red if in extreme overrev)
+   if (CurrentRPMRatio > 0.95)
+   {
+       BarColor = lerp(BarColor, Color_Redline.rgb * 2.5, abs(FlashPhase));
+   }
+
+   // 6. Output RGB & Alpha
+   float3 BackgroundSegmentColor = float3(0.04, 0.06, 0.09) * 0.4;
+   float3 FinalColor = IsLit ? (BarColor * FlashMultiplier * 2.2) : BackgroundSegmentColor;
+
+   float FinalAlpha = GapMask * HeightMask * saturate(IsLit + 0.3);
+
+   Material.EmissiveColor = FinalColor;
+   Material.Opacity = FinalAlpha;
+================================================================================
+*/

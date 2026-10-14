@@ -1,0 +1,242 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_VELOCITYXPlayerController"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=Class'/Script/VELOCITYX.VelocityPlayerController'
+End Object
+
+/*
+================================================================================
+VELOCITY X - Player Controller Blueprint: BP_VELOCITYXPlayerController
+Asset Path: /Game/Blueprints/Player/BP_VELOCITYXPlayerController
+Target Parent: AVelocityPlayerController (APlayerController)
+Description:
+   Master Player Controller Blueprint for VELOCITY X:
+   - Full binding to the real-time telemetry HUD widget (BP_VelocityHUD)
+   - Input state handling: smooth pausing/unpausing, UI mouse cursor control, and vibration silencing
+   - Seamless game state transitions: MainMenu, CarSelect, Racing, Paused, and GameOver/End
+   - Synchronizes telemetry from ABaseCar and race analytics from BP_VELOCITYXPlayerState
+================================================================================
+
+1. VARIABLE DEFINITIONS:
+--------------------------------------------------------------------------------
+-- WIDGET REFERENCES --
+- HUDWidget (BP_VelocityHUD*)
+- PauseMenuWidget (BP_PauseMenu*)
+- MainMenuWidget (BP_MainMenu*)
+- CarSelectWidget (BP_CarSelection*)
+- RaceResultsWidget (BP_RaceResults*)
+
+-- STATE MANAGEMENT --
+- ActiveGameState (EGameState) = MainMenu
+- bIsGamePaused (Boolean) = false
+- ControlledCarRef (ABaseCar*)
+- PlayerStateRef (BP_VELOCITYXPlayerState*)
+
+-- UI CLASSES (Subclasses of UserWidget) --
+- HUDWidgetClass = Class'/Game/Blueprints/UI/BP_VelocityHUD'
+- PauseMenuClass = Class'/Game/Blueprints/UI/BP_PauseMenu'
+- MainMenuClass = Class'/Game/Blueprints/UI/BP_MainMenu'
+- CarSelectClass = Class'/Game/Blueprints/UI/BP_CarSelection'
+- RaceResultsClass = Class'/Game/Blueprints/UI/BP_RaceResults'
+
+--------------------------------------------------------------------------------
+2. EVENT GRAPH IMPLEMENTATION:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+    // 1. CACHE PLAYER STATE
+    PlayerStateRef = Cast<BP_VELOCITYXPlayerState>(PlayerState);
+    
+    // 2. RETRIEVE CURRENT GAME MODE & INITIAL STATE
+    AVELOCITYXGameMode* GameMode = Cast<AVELOCITYXGameMode>(GetWorld()->GetAuthGameMode());
+    If (GameMode):
+        ActiveGameState = GameMode->GetGameState();
+    
+    // 3. INITIALIZE IN CURRENT STATE
+    SwitchGameState(ActiveGameState);
+
+Event Tick(DeltaTime):
+    // TELEMETRY BINDING UPDATE (ONLY WHEN RACING)
+    If (ActiveGameState == EGameState::Racing && HUDWidget != nullptr):
+        UpdateHUDTelemetry(DeltaTime);
+
+--------------------------------------------------------------------------------
+3. HUD BINDING LOGIC:
+--------------------------------------------------------------------------------
+
+Function InitializeHUD():
+    If (HUDWidget == nullptr):
+        HUDWidget = CreateWidget<BP_VelocityHUD>(this, HUDWidgetClass);
+    If (HUDWidget && !HUDWidget->IsInViewport()):
+        HUDWidget->AddToViewport(5); // Z-Order 5
+
+Function UpdateHUDTelemetry(DeltaTime):
+    // 1. Resolve Controlled Vehicle
+    If (ControlledCarRef == nullptr):
+        ControlledCarRef = Cast<ABaseCar>(GetPawn());
+
+    If (ControlledCarRef && HUDWidget):
+        // 2. Read Vehicle Telemetry
+        Float CurrentSpeedMPH = ControlledCarRef->GetSpeedMPH();
+        Float CurrentSpeedKPH = ControlledCarRef->GetSpeedKPH();
+        Float CurrentRPM = ControlledCarRef->GetEngineRPM();
+        Int32 CurrentGear = ControlledCarRef->GetCurrentGear();
+        Bool bLights = ControlledCarRef->AreHeadlightsActive();
+        
+        // 3. Push to HUD Elements
+        HUDWidget->UpdateSpeedometer(CurrentSpeedKPH, CurrentSpeedMPH);
+        HUDWidget->UpdateTachometer(CurrentRPM);
+        HUDWidget->UpdateGearDisplay(CurrentGear);
+        HUDWidget->UpdateHeadlightsIcon(bLights);
+        
+        // 4. Push Timing & Lap Data from PlayerState
+        If (PlayerStateRef == nullptr):
+            PlayerStateRef = Cast<BP_VELOCITYXPlayerState>(PlayerState);
+        
+        If (PlayerStateRef):
+            HUDWidget->UpdateRaceTimer(PlayerStateRef->CurrentRaceTime);
+            HUDWidget->UpdateLapDisplay(PlayerStateRef->CurrentLap, PlayerStateRef->TotalLaps);
+            HUDWidget->UpdateScore(PlayerStateRef->TotalScore, PlayerStateRef->CurrentScoreMultiplier);
+            HUDWidget->UpdateSplitDelta(PlayerStateRef->CurrentSplitTime);
+            
+            // Continuous high-speed and telemetry scoring
+            PlayerStateRef->UpdateTelemetry(CurrentSpeedMPH, DeltaTime);
+
+Function TeardownHUD():
+    If (HUDWidget && HUDWidget->IsInViewport()):
+        HUDWidget->RemoveFromParent();
+
+--------------------------------------------------------------------------------
+4. INPUT STATE HANDLING (PAUSED / UNPAUSED):
+--------------------------------------------------------------------------------
+
+Function TogglePause():
+    If (ActiveGameState == EGameState::Racing):
+        // TRANSITION TO PAUSED
+        SwitchGameState(EGameState::Paused);
+    Else If (ActiveGameState == EGameState::Paused):
+        // RESUME RACING
+        SwitchGameState(EGameState::Racing);
+
+Function HandlePauseState(bPause):
+    bIsGamePaused = bPause;
+    SetPause(bPause);
+    
+    If (bPause):
+        // 1. Show Pause Menu Widget
+        If (PauseMenuWidget == nullptr):
+            PauseMenuWidget = CreateWidget<BP_PauseMenu>(this, PauseMenuClass);
+        If (PauseMenuWidget && !PauseMenuWidget->IsInViewport()):
+            PauseMenuWidget->AddToViewport(20); // Z-Order 20 above HUD
+        
+        // 2. Update Pause Menu info from PlayerState
+        If (PlayerStateRef && PauseMenuWidget):
+            PauseMenuWidget->SetPauseStats(PlayerStateRef->CurrentRaceTime, PlayerStateRef->SelectedCarName);
+        
+        // 3. Switch Input Context to IMC_Pause
+        SetInputModePause();
+        bShowMouseCursor = true;
+        StopAllHaptics();
+        
+        PrintString("VELOCITY X Controller: Game Paused. Input set to GameAndUI.");
+    Else:
+        // 1. Hide Pause Menu Widget
+        If (PauseMenuWidget && PauseMenuWidget->IsInViewport()):
+            PauseMenuWidget->RemoveFromParent();
+        
+        // 2. Restore Driving Input Context (IMC_Driving)
+        SetInputModeDriving();
+        bShowMouseCursor = false;
+        
+        PrintString("VELOCITY X Controller: Game Resumed. Input set to GameOnly.");
+
+--------------------------------------------------------------------------------
+5. GAME STATE SWITCHER:
+--------------------------------------------------------------------------------
+
+Function SwitchGameState(NewState):
+    ActiveGameState = NewState;
+    
+    // Notify C++ GameMode of state change
+    AVELOCITYXGameMode* GameMode = Cast<AVELOCITYXGameMode>(GetWorld()->GetAuthGameMode());
+    If (GameMode && GameMode->GetGameState() != NewState):
+        GameMode->SetGameState(NewState);
+
+    Switch (NewState):
+        // --- CASE 1: MAIN MENU ---
+        Case EGameState::MainMenu:
+            HandlePauseState(false);
+            TeardownHUD();
+            If (CarSelectWidget && CarSelectWidget->IsInViewport()): CarSelectWidget->RemoveFromParent();
+            If (RaceResultsWidget && RaceResultsWidget->IsInViewport()): RaceResultsWidget->RemoveFromParent();
+            
+            If (MainMenuWidget == nullptr): MainMenuWidget = CreateWidget<BP_MainMenu>(this, MainMenuClass);
+            If (MainMenuWidget && !MainMenuWidget->IsInViewport()): MainMenuWidget->AddToViewport(10);
+            
+            SetInputModeUI();
+            bShowMouseCursor = true;
+            PrintString("State changed: MAIN MENU");
+            Break;
+
+        // --- CASE 2: CAR SELECTION ---
+        Case EGameState::CarSelect:
+            HandlePauseState(false);
+            TeardownHUD();
+            If (MainMenuWidget && MainMenuWidget->IsInViewport()): MainMenuWidget->RemoveFromParent();
+            If (RaceResultsWidget && RaceResultsWidget->IsInViewport()): RaceResultsWidget->RemoveFromParent();
+            
+            If (CarSelectWidget == nullptr): CarSelectWidget = CreateWidget<BP_CarSelection>(this, CarSelectClass);
+            If (CarSelectWidget && !CarSelectWidget->IsInViewport()): CarSelectWidget->AddToViewport(10);
+            
+            SetInputModeUI();
+            bShowMouseCursor = true;
+            PrintString("State changed: CAR SELECT");
+            Break;
+
+        // --- CASE 3: RACING ---
+        Case EGameState::Racing:
+            HandlePauseState(false);
+            If (MainMenuWidget && MainMenuWidget->IsInViewport()): MainMenuWidget->RemoveFromParent();
+            If (CarSelectWidget && CarSelectWidget->IsInViewport()): CarSelectWidget->RemoveFromParent();
+            If (RaceResultsWidget && RaceResultsWidget->IsInViewport()): RaceResultsWidget->RemoveFromParent();
+            
+            InitializeHUD();
+            SetInputModeDriving();
+            bShowMouseCursor = false;
+            
+            If (PlayerStateRef):
+                PlayerStateRef->StartRaceTiming();
+            PrintString("State changed: RACING");
+            Break;
+
+        // --- CASE 4: PAUSED ---
+        Case EGameState::Paused:
+            HandlePauseState(true);
+            PrintString("State changed: PAUSED");
+            Break;
+
+        // --- CASE 5: GAMEOVER / END OF RACE ---
+        Case EGameState::GameOver:
+            HandlePauseState(false);
+            TeardownHUD();
+            
+            If (RaceResultsWidget == nullptr): RaceResultsWidget = CreateWidget<BP_RaceResults>(this, RaceResultsClass);
+            If (RaceResultsWidget && !RaceResultsWidget->IsInViewport()):
+                RaceResultsWidget->AddToViewport(25); // Z-Order 25
+                If (PlayerStateRef):
+                    RaceResultsWidget->PopulateResults(
+                        PlayerStateRef->CurrentRaceTime,
+                        PlayerStateRef->BestLapTime,
+                        PlayerStateRef->TopSpeedMPH,
+                        PlayerStateRef->TotalScore,
+                        PlayerStateRef->CleanDrivingBonus
+                    );
+            
+            SetInputModeUI();
+            bShowMouseCursor = true;
+            PrintString("State changed: GAMEOVER / RACE FINISHED");
+            Break;
+================================================================================
+*/

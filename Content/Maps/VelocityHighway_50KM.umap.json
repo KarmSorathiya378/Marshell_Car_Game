@@ -1,0 +1,99 @@
+{
+  "Package": "/Game/Maps/VelocityHighway_50KM",
+  "World": {
+    "WorldName": "VelocityHighway_50KM",
+    "WorldType": "Game",
+    "WorldSettings": {
+      "GameModeClass": "/Script/VELOCITYX.VELOCITYXGameMode",
+      "bEnableWorldPartition": true,
+      "WorldPartition": {
+        "GridSize": 25600,
+        "LoadingRange": 150000,
+        "bEnableHLOD": true,
+        "HLODLayers": [
+          {
+            "Name": "HLOD_Foliage_Trees",
+            "CellSize": 51200,
+            "LoadingRange": 300000
+          },
+          {
+            "Name": "HLOD_Mountains_Distant",
+            "CellSize": 204800,
+            "LoadingRange": 2500000
+          }
+        ]
+      },
+      "DefaultPhysicsVolume": {
+        "GravityZ": -980.0
+      }
+    },
+    "PersistentLevel": {
+      "LevelScriptActorClass": "/Game/Blueprints/Core/BP_VelocityLevel.BP_VelocityLevel_C",
+      "InitialActors": [
+        {
+          "ActorName": "AtmosphericLightingSetup_0",
+          "Class": "/Game/Blueprints/Environment/BP_AtmosphericLightingSetup.BP_AtmosphericLightingSetup_C",
+          "Transform": {
+            "Translation": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0, 1.0],
+            "Scale3D": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "ActorName": "HighwayGenerator_0",
+          "Class": "/Game/Blueprints/Highway/BP_HighwayGenerator.BP_HighwayGenerator_C",
+          "Transform": {
+            "Translation": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0, 1.0],
+            "Scale3D": [1.0, 1.0, 1.0]
+          },
+          "Properties": {
+            "TotalHighwayLength": 5000000.0,
+            "LanesPerDirection": 3,
+            "LaneWidth": 375.0,
+            "LeftShoulderWidth": 150.0,
+            "RightShoulderWidth": 300.0,
+            "MedianWidth": 200.0
+          }
+        },
+        {
+          "ActorName": "RoadsideSpawner_0",
+          "Class": "/Game/Blueprints/Roadside/BP_RoadsideSpawner.BP_RoadsideSpawner_C",
+          "Transform": {
+            "Translation": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0, 1.0],
+            "Scale3D": [1.0, 1.0, 1.0]
+          },
+          "Properties": {
+            "StreetlightSpacing": 5000.0,
+            "GantrySpacing": 250000.0,
+            "EmergencyPhoneSpacing": 150000.0
+          }
+        },
+        {
+          "ActorName": "TrafficManager_0",
+          "Class": "/Game/Blueprints/Traffic/BP_TrafficManager.BP_TrafficManager_C",
+          "Transform": {
+            "Translation": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0, 1.0],
+            "Scale3D": [1.0, 1.0, 1.0]
+          },
+          "Properties": {
+            "MaxActiveVehicles": 35,
+            "SpawnDistanceAhead": 45000.0,
+            "DespawnDistanceBehind": 25000.0
+          }
+        },
+        {
+          "ActorName": "PlayerStart_0",
+          "Class": "/Script/Engine.PlayerStart",
+          "Transform": {
+            "Translation": [500.0, 387.5, 50.0],
+            "Rotation": [0.0, 0.0, 0.0, 1.0],
+            "Scale3D": [1.0, 1.0, 1.0]
+          }
+        }
+      ]
+    }
+  }
+}

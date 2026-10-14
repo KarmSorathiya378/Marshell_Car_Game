@@ -1,0 +1,105 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_StartLineTrigger"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_StartLineTrigger
+Asset Path: /Game/Blueprints/Triggers/BP_StartLineTrigger
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Full-width highway start line trigger with overhead start light gantry,
+   F1-style 5-light countdown sequence, audio cues, race clock synchronization,
+   and false-start detection.
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── StartLineTriggerVolume (BoxComponent)
+  │     - BoxExtent: (80.0, 1800.0, 500.0) cm
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │     - RelativeLocation: (0.0, 0.0, 250.0)
+  │
+  ├── StartGantryTruss (StaticMeshComponent)
+  │     - Mesh: SM_StartGantry_Truss_37m
+  │     - RelativeLocation: (0.0, 0.0, 0.0)
+  │
+  ├── StartLineDecal (DecalComponent)
+  │     - DecalMaterial: M_StartLine_Checkered_Decal
+  │     - DecalSize: (200.0, 1700.0, 50.0) cm (White/black checkered grid bar)
+  │
+  ├── CountdownLightsGroup (SceneComponent)
+  │     - RelativeLocation: (0.0, 0.0, 1100.0)
+  │     ├── Light_Red_1 (SpotLightComponent)
+  │     ├── Light_Red_2 (SpotLightComponent)
+  │     ├── Light_Red_3 (SpotLightComponent)
+  │     ├── Light_Red_4 (SpotLightComponent)
+  │     ├── Light_Red_5 (SpotLightComponent)
+  │     └── Light_Green_All (SpotLightComponent)
+  │
+  ├── Audio_CountdownBeep (AudioComponent)
+  │     - Sound: SoundCue'/Game/Audio/UI/SC_StartLights_Beep'
+  │
+  └── Audio_GreenLightChime (AudioComponent)
+        - Sound: SoundCue'/Game/Audio/UI/SC_StartLights_Go'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS:
+--------------------------------------------------------------------------------
+- CountdownDuration (Float) = 5.0 s (1 second per light red stage)
+- bAutoStartCountdownOnBeginPlay (Boolean) = True
+- bRaceStarted (Boolean) = False
+- bStartLineCrossed (Boolean) = False
+- StartTimestamp (Float) = 0.0 s
+
+--------------------------------------------------------------------------------
+3. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event BeginPlay:
+   1. Initialize all countdown spotlights to OFF (Intensity = 0.0)
+   2. If (bAutoStartCountdownOnBeginPlay):
+      - StartCountdownSequence()
+
+Function StartCountdownSequence():
+   1. Set Timer by Event (Delay = 1.0s, Rate = 1.0s, Loops = 5) -> Sequence Step:
+      - Step 1 (Time 1.0s): Light_Red_1->SetIntensity(50000.0), Play Audio_CountdownBeep
+      - Step 2 (Time 2.0s): Light_Red_2->SetIntensity(50000.0), Play Audio_CountdownBeep
+      - Step 3 (Time 3.0s): Light_Red_3->SetIntensity(50000.0), Play Audio_CountdownBeep
+      - Step 4 (Time 4.0s): Light_Red_4->SetIntensity(50000.0), Play Audio_CountdownBeep
+      - Step 5 (Time 5.0s): Light_Red_5->SetIntensity(50000.0), Play Audio_CountdownBeep
+   2. Random Delay after 5 reds (between 0.4s and 1.2s - authentic racing launch):
+      - Turn OFF all Red Lights
+      - Turn ON Light_Green_All (Intensity = 80000.0)
+      - Play Audio_GreenLightChime
+      - bRaceStarted = True
+      - StartTimestamp = UGameplayStatics::GetTimeSeconds(GetWorld())
+      - AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+      - If (GM):
+          GM->StartTimer()
+          GM->SetGameState(EGameState::Racing)
+
+Event OnComponentBeginOverlap (StartLineTriggerVolume, OtherActor, OtherComp...):
+   1. If (bStartLineCrossed) Return;
+   2. Check if OtherActor is vehicle (ABaseCar or AVELOCITYXVehicle)
+   3. If (!bRaceStarted):
+      // False start detected!
+      PrintString("WARNING: JUMP START DETECTED!");
+   4. bStartLineCrossed = True
+   5. AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+   6. If (GM):
+      - If (GM->GetClass()->ImplementsInterface(UBPI_RaceProgression::StaticClass())):
+          IBPI_RaceProgression::Execute_OnStartLineCrossed(GM, OtherActor, StartTimestamp);
+   7. Notify HUD:
+      - APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+      - If (PC && PC->GetHUD() && PC->GetHUD()->GetClass()->ImplementsInterface(UBPI_CheckpointListener::StaticClass())):
+          IBPI_CheckpointListener::Execute_OnStartLineCrossedNotification(PC->GetHUD(), StartTimestamp, OtherActor);
+================================================================================
+*/

@@ -1,0 +1,125 @@
+Begin Object Class=/Script/Engine.Blueprint Name="BP_CheckpointTrigger"
+   Begin Object Class=/Script/Engine.EdGraph Name="UserConstructionScript"
+   End Object
+   Begin Object Class=/Script/Engine.EdGraph Name="EventGraph"
+   End Object
+   ParentClass=/Script/Engine.Actor
+End Object
+
+/*
+================================================================================
+VELOCITY X - Blueprint Class: BP_CheckpointTrigger
+Asset Path: /Game/Blueprints/Triggers/BP_CheckpointTrigger
+Target Parent: AActor
+Author: Level Designer
+Description:
+   Modular highway sector checkpoint trigger with overhead timing gantry,
+   laser split beam visual effects, multi-lane detection volume, and split timing
+   logic for VELOCITY X racing circuits.
+================================================================================
+
+1. COMPONENT HIERARCHY:
+--------------------------------------------------------------------------------
+- DefaultSceneRoot (SceneComponent)
+  ├── TriggerVolume (BoxComponent)
+  │     - BoxExtent: (120.0, 1800.0, 500.0) cm (Spans all lanes + shoulders, 10m height)
+  │     - CollisionProfile: "Trigger"
+  │     - CollisionResponses: Overlap ECC_Vehicle, ECC_Pawn
+  │     - RelativeLocation: (0.0, 0.0, 250.0)
+  │
+  ├── GantryTrussLeft (StaticMeshComponent)
+  │     - Mesh: SM_Gantry_VerticalPillar (Steel truss pillar, Z = 0 to 12m)
+  │     - RelativeLocation: (0.0, -1850.0, 0.0)
+  │
+  ├── GantryTrussRight (StaticMeshComponent)
+  │     - Mesh: SM_Gantry_VerticalPillar (Steel truss pillar, Z = 0 to 12m)
+  │     - RelativeLocation: (0.0, 1850.0, 0.0)
+  │
+  ├── OverheadCrossbar (StaticMeshComponent)
+  │     - Mesh: SM_Gantry_Crossbar_37m (Spanning left to right at Z = 1100cm)
+  │     - RelativeLocation: (0.0, 0.0, 1100.0)
+  │
+  ├── SplitLaserBeam (ParticleSystemComponent / NiagaraComponent)
+  │     - System: NS_TimingLaserBeam (Neon cyan timing line traversing road deck at Z = 80cm)
+  │     - RelativeLocation: (0.0, 0.0, 80.0)
+  │
+  ├── CheckpointSignboard (TextRenderComponent / WidgetComponent)
+  │     - Text: "CHECKPOINT 01 // SECTOR 1"
+  │     - RelativeLocation: (0.0, 0.0, 1150.0)
+  │     - Font: Orbitron-Bold, Emissive Cyan
+  │
+  └── Audio_SplitChime (AudioComponent)
+        - Sound: SoundCue'/Game/Audio/UI/SC_Checkpoint_Pass'
+
+--------------------------------------------------------------------------------
+2. EXPOSED PARAMETERS (Configurable per instance in Level):
+--------------------------------------------------------------------------------
+- CheckpointIndex (Integer, Editable) = 1 (1 to 4+ for sector milestones)
+- CheckpointName (String, Editable) = "SECTOR 1 SPLIT"
+- TrackDistanceKm (Float, Editable) = 1.0 km (100,000 uu)
+- TargetSectorTime (Float, Editable) = 22.5 s (Benchmark split time)
+- bIsActiveCheckpoint (Boolean) = True
+- bHasBeenCrossed (Boolean) = False
+- LaserGlowColor (LinearColor) = (0.0, 0.85, 1.0, 1.0) - High-Speed Cyan
+- CrossedGlowColor (LinearColor) = (0.0, 1.0, 0.4, 1.0) - Neon Green
+
+--------------------------------------------------------------------------------
+3. EVENT DISPATCHERS:
+--------------------------------------------------------------------------------
+- EventDispatcher OnCheckpointPassed(int32 Index, FString Name, float SplitTime, float SpeedKPH, AActor* Vehicle)
+
+--------------------------------------------------------------------------------
+4. EVENT GRAPH BLUEPRINT LOGIC:
+--------------------------------------------------------------------------------
+
+Event OnComponentBeginOverlap (TriggerVolume, OtherActor, OtherComp...):
+   1. Validation:
+      - If (!bIsActiveCheckpoint || bHasBeenCrossed) Return;
+      - Check if OtherActor is ABaseCar or AVELOCITYXVehicle
+      - If False, Return;
+
+   2. Mark Triggered:
+      - bHasBeenCrossed = True
+
+   3. Telemetry & Speed Capture:
+      - Float VehicleSpeedKPH = 0.0f;
+      - Float VehicleSpeedMPH = 0.0f;
+      - If (OtherActor->IsA(ABaseCar::StaticClass())):
+          ABaseCar* BaseCar = Cast<ABaseCar>(OtherActor);
+          VehicleSpeedKPH = BaseCar->GetSpeedKPH();
+          VehicleSpeedMPH = BaseCar->GetSpeedMPH();
+      - Else If (OtherActor->IsA(AVELOCITYXVehicle::StaticClass())):
+          AVELOCITYXVehicle* VelVehicle = Cast<AVELOCITYXVehicle>(OtherActor);
+          VehicleSpeedKPH = VelVehicle->GetSpeed() * 0.036f;
+          VehicleSpeedMPH = VelVehicle->GetSpeedMPH();
+
+   4. Split Time Calculation:
+      - AVELOCITYXGameMode* GM = Cast<AVELOCITYXGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+      - Float CurrentRaceTime = GM ? GM->GetElapsedTime() : UGameplayStatics::GetTimeSeconds(GetWorld());
+      - Float DeltaVsTarget = CurrentRaceTime - TargetSectorTime;
+
+   5. Audio & Visual Feedback:
+      - Audio_SplitChime->Play()
+      - Set Color Parameter on SplitLaserBeam ("BeamColor", CrossedGlowColor)
+      - Spawn Emitter at Location: NS_CheckpointFlash (Flash wave across gantry)
+
+   6. Interface & Event Dispatch:
+      - Broadcast Local Dispatcher:
+          OnCheckpointPassed.Broadcast(CheckpointIndex, CheckpointName, CurrentRaceTime, VehicleSpeedKPH, OtherActor);
+      - Notify GameMode via BPI_RaceProgression:
+          If (GM && GM->GetClass()->ImplementsInterface(UBPI_RaceProgression::StaticClass())):
+             IBPI_RaceProgression::Execute_OnCheckpointPassed(
+                GM, CheckpointIndex, TrackDistanceKm, CurrentRaceTime, VehicleSpeedKPH, VehicleSpeedMPH, OtherActor
+             );
+      - Notify HUD via BPI_CheckpointListener:
+          APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+          If (PC && PC->GetHUD() && PC->GetHUD()->GetClass()->ImplementsInterface(UBPI_CheckpointListener::StaticClass())):
+             IBPI_CheckpointListener::Execute_OnCheckpointCrossedNotification(
+                PC->GetHUD(), CheckpointIndex, CheckpointName, CurrentRaceTime, DeltaVsTarget, VehicleSpeedKPH, VehicleSpeedMPH, OtherActor
+             );
+
+Function ResetCheckpoint():
+   bHasBeenCrossed = False
+   Set Color Parameter on SplitLaserBeam ("BeamColor", LaserGlowColor)
+================================================================================
+*/

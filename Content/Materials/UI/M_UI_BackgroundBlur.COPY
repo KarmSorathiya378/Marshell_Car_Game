@@ -1,0 +1,80 @@
+Begin Object Class=/Script/Engine.Material Name="M_UI_BackgroundBlur"
+   Begin Object Class=/Script/UnrealEd.MaterialGraph Name="MaterialGraph_0"
+   End Object
+   Begin Object Name="MaterialGraph_0"
+   End Object
+   MaterialDomain=MD_UI
+   BlendMode=BLEND_Translucent
+   ShadingModel=MSM_Unlit
+   TwoSided=False
+End Object
+
+/*
+================================================================================
+VELOCITY X - UI Material: M_UI_BackgroundBlur
+Asset Path: /Game/Materials/UI/M_UI_BackgroundBlur
+Target Use: Frosted Glass / Translucent Backdrop Blur for BP_PauseMenu & BP_Settings
+Resolution Target: 1920x1080 Fullscreen UI Overlay
+================================================================================
+
+OVERVIEW & VISUAL SPECIFICATION:
+--------------------------------------------------------------------------------
+1. FROSTED GLASS TRANSLUCENCY:
+   - High-end dark glassmorphism aesthetic suitable for an AAA racing title.
+   - Deep slate/navy tinted tint with subtle chromatic dispersion.
+   - Vignette darkening towards the screen perimeter to focus eye on menu options.
+   - Animated micro-grain noise to prevent banding on 8-bit displays.
+   - Carbon weave / scanline diagonal texture at low opacity for high-tech look.
+
+2. DYNAMIC PARAMETER REGISTRY:
+   - "BlurStrength" (Scalar, Default=1.0, Range [0.0 - 2.0]):
+     Scale of background blur intensity.
+   - "TintDarkness" (Scalar, Default=0.72, Range [0.0 - 1.0]):
+     Darkening factor over underlying 3D world scene.
+   - "VignetteIntensity" (Scalar, Default=0.85):
+     Edge shadow intensity.
+   - "FrostColor" (LinearColor, Default=(0.04, 0.07, 0.12, 0.85)):
+     Deep tinted glass ambient color.
+   - "ChromaticSeparation" (Scalar, Default=0.003):
+     Edge color fringing on background scene texture.
+   - "ScanlineOpacity" (Scalar, Default=0.08):
+     Subtle racing telemetry scanline overlay.
+
+--------------------------------------------------------------------------------
+SHADER / HLSL GRAPH LOGIC:
+--------------------------------------------------------------------------------
+   // 1. Screen Texture Coordinates
+   float2 ScreenUV = InUV;
+   float2 CenteredUV = ScreenUV - float2(0.5, 0.5);
+
+   // 2. Multi-Tap Gaussian Blur Kernel (Simulated in UI post-process / RetainerBox)
+   float3 BlurredScene = float3(0,0,0);
+   float TotalWeight = 0.0;
+   float SampleOffsets[5] = { -2.0, -1.0, 0.0, 1.0, 2.0 };
+   float Weights[5] = { 0.06136, 0.24477, 0.38774, 0.24477, 0.06136 };
+
+   for (int i = 0; i < 5; i++)
+   {
+       float2 OffsetUV = ScreenUV + float2(SampleOffsets[i] * 0.002 * BlurStrength, 0.0);
+       BlurredScene += SceneTextureLookup(OffsetUV) * Weights[i];
+       TotalWeight += Weights[i];
+   }
+   BlurredScene /= TotalWeight;
+
+   // 3. Vignette
+   float DistFromCenter = length(CenteredUV);
+   float Vignette = smoothstep(0.3, 0.95, DistFromCenter) * VignetteIntensity;
+
+   // 4. Subtle Scanline
+   float Scanline = (sin(InUV.y * 1080.0 * 1.5) * 0.5 + 0.5) * ScanlineOpacity;
+
+   // 5. Blended Composition
+   float3 TintedScene = BlurredScene * (1.0 - TintDarkness);
+   float3 FinalColor = lerp(TintedScene, FrostColor.rgb, 0.65) * (1.0 - Vignette) + Scanline;
+
+   float FinalAlpha = saturate(TintDarkness + 0.15);
+
+   Material.EmissiveColor = FinalColor;
+   Material.Opacity = FinalAlpha;
+================================================================================
+*/
