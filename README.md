@@ -8,17 +8,18 @@
 ## Table of Contents
 1. [About the Product: What Marshell Can Do](#about-the-product-what-marshell-can-do)
 2. [Ways to Play](#ways-to-play)
-   - [Method 1: Instant Browser Play (No Unreal Engine Required)](#method-1-instant-browser-play-no-unreal-engine-required)
-   - [Method 2: Full Unreal Engine Experience (High-Fidelity)](#method-2-full-unreal-engine-experience-high-fidelity)
-3. [Unreal Engine Setup Guide (From Scratch)](#unreal-engine-setup-guide-from-scratch)
-   - [Prerequisites & Supported Versions (UE 5.3+)](#prerequisites--supported-versions-ue-53)
-   - [Step-by-Step Installation & Launch](#step-by-step-installation--launch)
-4. [Controls & Gameplay](#controls--gameplay)
+   - [Method 1: Instant Browser Play](#method-1-instant-browser-play-no-unreal-engine-required)
+   - [Method 2: Full Unreal Engine Experience](#method-2-full-unreal-engine-experience-high-fidelity)
+3. [Unreal Engine Setup Guide](#unreal-engine-setup-guide)
+   - [Prerequisites and Supported Versions](#prerequisites-and-supported-versions)
+   - [Step-by-Step Installation and Launch](#step-by-step-installation-and-launch)
+4. [Controls and Gameplay](#controls-and-gameplay)
    - [Vehicle Selection](#vehicle-selection)
-   - [Keyboard & Gamepad Layout](#keyboard--gamepad-layout)
-   - [Race Mechanics & Checkpoints](#race-mechanics--checkpoints)
-5. [Code Architecture & Project Structure](#code-architecture--project-structure)
-6. [Developer & Automation Tooling](#developer--automation-tooling)
+   - [Keyboard and Gamepad Layout](#keyboard-and-gamepad-layout)
+   - [Race Mechanics and Checkpoints](#race-mechanics-and-checkpoints)
+5. [Code Architecture and Project Structure](#code-architecture-and-project-structure)
+6. [Developer and Automation Tooling](#developer-and-automation-tooling)
+7. [Credits and Author](#credits-and-author)
 
 ---
 
@@ -49,33 +50,37 @@ After analyzing the codebase, there are **two distinct ways** to play this game:
 
 | Feature | Method 1: Web Edition (`VelocityX_Web`) | Method 2: Unreal Engine (`VelocityX`) |
 | :--- | :--- | :--- |
-| **Requirements** | Any web browser (Chrome, Edge, Firefox, Brave) | Unreal Engine 5.3+ installed |
-| **Install Time** | 0 seconds (instant) | Requires UE installation & compile |
-| **Physics / Graphics** | Three.js WebGL 3D canvas | Unreal Engine DX11/DX12, high-res shaders |
-| **Best For** | Quick preview, low-spec PCs, instant play | Full arcade experience, audio, gamepad |
+| **Requirements** | Any modern web browser (Chrome, Edge, Firefox, Brave) | Unreal Engine 5.3+ installed |
+| **Install Time** | 0 seconds (instant play) | Requires UE installation & build |
+| **Physics / Graphics** | Three.js WebGL 3D canvas | Unreal Engine DX11/DX12, high-res materials |
+| **Best For** | Quick preview, low-spec PCs, zero-install play | Full arcade experience, audio, gamepad |
 
 ---
 
 ## Method 1: Instant Browser Play (No Unreal Engine Required)
 
-If you don't have Unreal Engine installed or want to play immediately:
+If you do not have Unreal Engine installed or want to test and play immediately:
 
-1. Navigate to the [`VelocityX_Web`](file:///d:/karm/car_game/VelocityX_Web) directory.
-2. Double-click [`index.html`](file:///d:/karm/car_game/VelocityX_Web/index.html) to open it in your browser (or serve it with any local web server, e.g., `python -m http.server`).
+1. Open the [VelocityX_Web](VelocityX_Web) directory.
+2. Double-click [index.html](VelocityX_Web/index.html) to launch it directly in your web browser (or serve it with any local server, such as `python -m http.server`).
 3. Click **Drive** on the main menu.
-4. Drive using `W`, `A`, `S`, `D`, brake with `Space`, and cycle camera angles with `C`.
+4. Drive with `W`, `A`, `S`, `D`, brake with `Space`, and cycle cameras with `C`.
 
 ---
 
 ## Method 2: Full Unreal Engine Experience (High-Fidelity)
 
-For the complete native experience created by Marshell with full vehicle physics, gamepad vibration, generated engine audio, and high-resolution rendering:
+For the complete native experience created by Marshell with full vehicle physics, gamepad support, generated engine audio, and high-resolution rendering:
 
-### Prerequisites & Supported Versions (UE 5.3+)
+---
 
-- **Unreal Engine Version**: **Unreal Engine 5.3 or newer** (tested on UE 5.3, 5.4, 5.5, and 5.7+).
+## Unreal Engine Setup Guide
+
+### Prerequisites and Supported Versions
+
+- **Unreal Engine Version**: **Unreal Engine 5.3 or newer** (compatible with UE 5.3, 5.4, 5.5, and 5.7+; default configuration targets UE 5.7).
 - **Operating System**: Windows 10 / 11 (64-bit).
-- **Compiler / IDE**: Visual Studio 2022 (Community or higher) with:
+- **Compiler / Build Tools**: Visual Studio 2022 (Community or higher) with:
   - *Desktop development with C++*
   - *MSVC v143 - VS 2022 C++ x64/x86 build tools*
   - *Windows 10/11 SDK*
@@ -83,13 +88,13 @@ For the complete native experience created by Marshell with full vehicle physics
 
 ---
 
-### Unreal Engine Setup Guide (From Scratch)
+### Step-by-Step Installation and Launch
 
 #### Step 1: Download and Install Unreal Engine
-1. Download and install the **Epic Games Launcher** from [unrealengine.com](https://www.unrealengine.com/).
+1. Download the **Epic Games Launcher** from [unrealengine.com](https://www.unrealengine.com/).
 2. Open the Epic Games Launcher and select the **Unreal Engine** tab on the left.
-3. Click **Library**, click the yellow **+** icon beside Engine Versions, and choose **Unreal Engine 5.3** or any newer version (e.g. 5.4, 5.5, 5.7).
-4. Click **Install** and wait for the installation to finish.
+3. Click **Library**, click the yellow **+** icon beside Engine Versions, and choose **Unreal Engine 5.3** or any newer version (such as 5.4, 5.5, or 5.7).
+4. Click **Install** and wait for the download to complete.
 
 #### Step 2: Clone or Download this Repository
 ```bash
@@ -97,32 +102,32 @@ git clone https://github.com/KarmSorathiya378/Marshell_Car_Game.git
 cd Marshell_Car_Game
 ```
 
-#### Step 3: Launch the Game (3 Options)
+#### Step 3: Launch the Game (Choose One Option)
 
 ##### Option A: One-Click Launcher (Fastest)
 Double-click the included batch launcher in the root folder:
-- **[`Play Velocity X.cmd`](file:///d:/karm/car_game/Play%20Velocity%20X.cmd)**: Automatically compiles any changes and starts the game windowed at 1600x900.
+- [Play Velocity X.cmd](Play%20Velocity%20X.cmd): Automatically compiles any changes and starts the game windowed at 1600x900.
 > *Note:* If your Unreal Engine is installed in a custom location other than default `E:\UE_5.7`, run via PowerShell specifying your engine path:
 > ```powershell
 > powershell -ExecutionPolicy Bypass -File "VelocityX\Scripts\Play.ps1" -EngineRoot "C:\Program Files\Epic Games\UE_5.4"
 > ```
 
 ##### Option B: Open via Unreal Editor
-1. Double-click **[`Open Velocity X Editor.cmd`](file:///d:/karm/car_game/Open%20Velocity%20X%20Editor.cmd)** (or pass `-Editor` to `Scripts/Play.ps1`).
-2. Alternatively, right-click [`VelocityX/VelocityX.uproject`](file:///d:/karm/car_game/VelocityX/VelocityX.uproject) and select **Switch Unreal Engine version...** to select your installed engine version (5.3+), then double-click the `.uproject` file.
+1. Double-click [Open Velocity X Editor.cmd](Open%20Velocity%20X%20Editor.cmd) (or pass `-Editor` to `VelocityX/Scripts/Play.ps1`).
+2. Alternatively, right-click [VelocityX/VelocityX.uproject](VelocityX/VelocityX.uproject) and select **Switch Unreal Engine version...** to select your installed engine version (5.3+), then double-click the `.uproject` file.
 3. When prompted to build missing modules, click **Yes**.
 4. In the Content Browser, open `Content/Maps/Sunridge`.
-   > **Note on Viewport**: Sunridge is a runtime-generated track; the viewport before pressing play may appear dark/empty. Click the green **Play (PIE)** button to generate and drive the track.
+   > **Note on Viewport**: Sunridge is a runtime-generated track; the viewport before pressing play is empty by design. Click the green **Play (PIE)** button in the editor toolbar to generate and drive the track.
 
 ##### Option C: Build from Visual Studio 2022
-1. Right-click [`VelocityX/VelocityX.uproject`](file:///d:/karm/car_game/VelocityX/VelocityX.uproject) and select **Generate Visual Studio project files**.
+1. Right-click [VelocityX/VelocityX.uproject](VelocityX/VelocityX.uproject) and select **Generate Visual Studio project files**.
 2. Open the generated `VelocityX.sln` in Visual Studio 2022.
 3. Set the build configuration to **Development Editor** and platform to **Win64**.
 4. Press `F5` to compile and launch in debug mode.
 
 ---
 
-## Controls & Gameplay
+## Controls and Gameplay
 
 ### Vehicle Selection
 On the start screen before beginning the race, press **1**, **2**, or **3** to switch car tuning presets:
@@ -130,7 +135,7 @@ On the start screen before beginning the race, press **1**, **2**, or **3** to s
 - **2 — Veloce R**: Lightweight chassis with aggressive turning and high boost sensitivity.
 - **3 — Titan X**: High-torque cruiser with maximum stability and heavy road adhesion.
 
-### Keyboard & Gamepad Layout
+### Keyboard and Gamepad Layout
 
 | Action | Keyboard | Gamepad |
 | :--- | :--- | :--- |
@@ -147,7 +152,7 @@ On the start screen before beginning the race, press **1**, **2**, or **3** to s
 | **Cycle Graphics Quality** | `F1` | — |
 | **Quit Game** | `Alt + F4` | — |
 
-### Race Mechanics & Checkpoints
+### Race Mechanics and Checkpoints
 - Complete **3 laps** around the Sunridge circuit.
 - The circuit features **16 sequential checkpoints**. You must drive forward through each checkpoint in order; passing backward or cutting across the track will not register.
 - The HUD minimap and distance indicators guide you to the active checkpoint.
@@ -155,7 +160,7 @@ On the start screen before beginning the race, press **1**, **2**, or **3** to s
 
 ---
 
-## Code Architecture & Project Structure
+## Code Architecture and Project Structure
 
 ```
 Marshell_Car_Game/
@@ -181,7 +186,7 @@ Marshell_Car_Game/
 
 ---
 
-## Developer & Automation Tooling
+## Developer and Automation Tooling
 
 - **Automated Test Suite**:
   Run unit and gameplay validation tests via PowerShell:
@@ -201,7 +206,7 @@ Marshell_Car_Game/
 
 ---
 
-## Credits & Author
+## Credits and Author
 
 - **Producer & Creator**: **Marshell**
 - **Repository**: [Marshell_Car_Game](https://github.com/KarmSorathiya378/Marshell_Car_Game.git)
