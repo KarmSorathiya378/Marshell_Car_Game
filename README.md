@@ -68,11 +68,21 @@ If you do not have Unreal Engine installed or want to test and play immediately:
 
 ### Deploy the browser edition to Vercel
 
-Use the repository root as Vercel's **Root Directory** and **Other** as the framework preset. The root `vercel.json` disables build/install steps and publishes only `VelocityX_Web`. Commit and push the web files, including `VelocityX_Web/vendor`, and `vercel.json`, then redeploy.
+Use the repository root as Vercel's **Root Directory** and **Other** as the framework preset. The root `vercel.json` runs `npm run check` before publishing only `VelocityX_Web`. No dependency installation is needed. Commit and push the web files, including `VelocityX_Web/vendor`, `package.json`, `tests`, and `vercel.json`, then redeploy.
 
-If your Vercel project already uses `VelocityX_Web` as its Root Directory, keep that setting, leave the build and install commands empty, and use `.` as the Output Directory instead. Do not set the output to `VelocityX_Web` again inside that directory.
+If your Vercel project currently uses `VelocityX_Web` as its Root Directory, change it to the repository root (leave the Root Directory field empty) so Vercel can read `vercel.json`, `package.json`, and the tests. Remove any old dashboard overrides that skip the build step. The configured output remains `VelocityX_Web`.
 
 Wait for the menu to say **Ready**, click **Drive**, and hold **W** to accelerate. This edition uses a keyboard. If the engine or WebGL cannot initialize, the menu displays an error instead of leaving an unresponsive Drive button. The Unreal project is a separate native edition; the deployable browser game is in `VelocityX_Web`.
+
+### Automatic checks before publishing
+
+Every push and pull request runs the **Game checks / Web game checks** GitHub Actions workflow. View its result in the repository's **Actions** tab or the pull request checks. To run the same checks locally, install Node.js 24 and run `npm run check` from the repository root.
+
+The checks validate JavaScript syntax, local engine assets, startup with browser globals, Drive, acceleration direction, pause/resume, focus loss, and startup error handling. They execute the shipped game with the real Three.js engine and a simulated DOM and renderer; they do not validate actual GPU rendering or device compatibility. They cover the browser edition, not the Unreal project.
+
+For each Git deployment, Vercel independently runs that same command as its build step. A nonzero exit stops the deployment, keeping the previous working production deployment live. GitHub Actions and Vercel run in parallel; Vercel gates publication on its own copy of the checks, not on the Actions status. No Vercel token or GitHub deployment secret is required. Keep the GitHub repository connected to Vercel with `main` as its production branch.
+
+Optional: add a GitHub branch ruleset for `main` requiring pull requests and the **Web game checks** status before merging. This also prevents unchecked changes from being merged; the Vercel build check protects deployments independently.
 
 ---
 

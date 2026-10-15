@@ -1,0 +1,12 @@
+{
+  "name": "velocityx-web",
+  "private": true,
+  "scripts": {
+    "check": "node --test tests/web.test.cjs",
+    "test": "npm run check",
+    "build": "npm run check"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
