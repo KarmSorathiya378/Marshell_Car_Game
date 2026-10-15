@@ -62,9 +62,17 @@ After analyzing the codebase, there are **two distinct ways** to play this game:
 If you do not have Unreal Engine installed or want to test and play immediately:
 
 1. Open the [VelocityX_Web](VelocityX_Web) directory.
-2. Double-click [index.html](VelocityX_Web/index.html) to launch it directly in your web browser (or serve it with any local server, such as `python -m http.server`).
+2. Double-click [index.html](VelocityX_Web/index.html) to launch it directly in your web browser (or run `python -m http.server 8000 --directory VelocityX_Web` and open `http://localhost:8000`). Keep the `vendor` folder alongside `index.html`; it contains the bundled Three.js engine and its license.
 3. Click **Drive** on the main menu.
 4. Drive with `W`, `A`, `S`, `D`, brake with `Space`, and cycle cameras with `C`.
+
+### Deploy the browser edition to Vercel
+
+Use the repository root as Vercel's **Root Directory** and **Other** as the framework preset. The root `vercel.json` disables build/install steps and publishes only `VelocityX_Web`. Commit and push the web files, including `VelocityX_Web/vendor`, and `vercel.json`, then redeploy.
+
+If your Vercel project already uses `VelocityX_Web` as its Root Directory, keep that setting, leave the build and install commands empty, and use `.` as the Output Directory instead. Do not set the output to `VelocityX_Web` again inside that directory.
+
+Wait for the menu to say **Ready**, click **Drive**, and hold **W** to accelerate. This edition uses a keyboard. If the engine or WebGL cannot initialize, the menu displays an error instead of leaving an unresponsive Drive button. The Unreal project is a separate native edition; the deployable browser game is in `VelocityX_Web`.
 
 ---
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>VELOCITY X - Web Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
@@ -28,6 +29,9 @@
             transition: 0.3s; margin: 10px;
         }
         .btn:hover { background: #00e5ff; color: #000; box-shadow: 0 0 20px #00e5ff; }
+        .btn:disabled { opacity: 0.5; cursor: wait; }
+        #load-status { color: #fff; max-width: 500px; padding: 0 20px; text-align: center; }
+        @media (max-width: 600px) { h1 { font-size: 36px; letter-spacing: 4px; } }
         
         /* HUD */
         #hud { display: none; padding: 20px; color: #fff; text-shadow: 0 0 5px #000; }
@@ -44,7 +48,9 @@
     <div id="ui-layer">
         <div id="main-menu">
             <h1>VELOCITY X</h1>
-            <button class="btn" onclick="startGame()">Drive</button>
+            <button id="drive-button" class="btn" onclick="startGame()" disabled>Drive</button>
+            <p id="load-status" role="status">Loading game...</p>
+            <noscript><p style="color:white">Enable JavaScript in your browser to play.</p></noscript>
         </div>
         <div id="hud">
             <div class="hud-group">
@@ -59,10 +65,19 @@
         <div id="controls">WASD: Drive | SPACE: Brake | C: Camera</div>
     </div>
 
-    <!-- Three.js via CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Ship the engine with the game so starting does not depend on a third-party CDN. -->
+    <script src="./vendor/three.r128.min.js"></script>
     
     <script>
+        function showStartupError(error) {
+            console.error('Unable to start Velocity X:', error);
+            document.getElementById('load-status').textContent =
+                'Unable to load the 3D game. Reload the page and check that WebGL / hardware acceleration is enabled in your browser.';
+            document.getElementById('drive-button').disabled = true;
+        }
+
+        try {
+        if (!window.THREE) throw new Error('The bundled Three.js engine could not be loaded.');
         // --- GAME STATE ---
         const state = { 
             isPlaying: false, 
@@ -159,9 +174,9 @@
         // Car Top
         const topGeo = new THREE.BoxGeometry(1.8, 0.6, 2);
         const topMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
-        const top = new THREE.Mesh(topGeo, topMat);
-        top.position.set(0, 1.5, -0.2);
-        car.add(top);
+        const carRoof = new THREE.Mesh(topGeo, topMat);
+        carRoof.position.set(0, 1.5, -0.2);
+        car.add(carRoof);
 
         // Wheels
         const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 16);
@@ -208,7 +223,8 @@
                 case 'd': keys.d = true; break;
                 case ' ': keys.space = true; break;
                 case 'c': toggleCamera(); break;
-                case 'Escape': togglePause(); break;
+                case 'escape': if (!e.repeat) togglePause(); break;
+                case 'enter': startGame(); break;
             }
         });
 
@@ -250,7 +266,7 @@
             state.speed *= config.friction;
 
             // Steering
-            if (state.speed > 1) {
+            if (Math.abs(state.speed) > 1) {
                 const dir = (state.speed > 0) ? 1 : -1;
                 if (keys.a) state.steering = config.steerSpeed;
                 else if (keys.d) state.steering = -config.steerSpeed;
@@ -263,7 +279,13 @@
             state.speed = Math.max(Math.min(state.speed, config.maxSpeed), -config.maxSpeed/2);
 
             // Move Car
-            car.position.z -= state.speed * 0.02;
+            car.position.z += state.speed * 0.02;
+            car.position.x -= Math.sin(car.rotation.y) * state.speed * 0.02;
+            car.position.x = Math.max(-22, Math.min(22, car.position.x));
+            // Repeat the straight road instead of driving beyond its end.
+            const wrappedZ = (car.position.z + 4000) % 4000;
+            camera.position.z += wrappedZ - car.position.z;
+            car.position.z = wrappedZ;
         }
 
         function updateCamera() {
@@ -306,6 +328,7 @@
 
         // --- UI CONTROLS ---
         function startGame() {
+            if (state.isPlaying) return;
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
             state.isPlaying = true;
@@ -323,12 +346,26 @@
             togglePause();
         }
 
+        // Functions declared inside the startup guard are explicitly exposed to menu buttons.
+        window.startGame = startGame;
+        window.resumeGame = resumeGame;
+        renderer.render(scene, camera);
+        document.getElementById('drive-button').disabled = false;
+        document.getElementById('load-status').textContent = 'Ready. Click Drive, then hold W to accelerate.';
+        window.addEventListener('blur', () => {
+            Object.keys(keys).forEach(key => keys[key] = false);
+            if (state.isPlaying && !state.isPaused) togglePause();
+        });
+
         // Handle Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+        } catch (error) {
+            showStartupError(error);
+        }
 
     </script>
 </body>
