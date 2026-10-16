@@ -1,0 +1,4 @@
+VelocityX_Web/wasm/*.wasm binary
+VelocityX_Web/wasm/*.json text eol=lf
+web-src/* text eol=lf
+scripts/* text eol=lf

@@ -33,3 +33,9 @@ Logs/
 Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Local Unreal streaming infrastructure and dependencies
+.local/
+node_modules/
+test-results/
+playwright-report/

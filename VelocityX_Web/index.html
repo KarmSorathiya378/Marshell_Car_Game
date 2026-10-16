@@ -1,372 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>VELOCITY X - Web Edition</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
-        canvas { display: block; }
-        
-        /* UI Overlay */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        
-        /* Main Menu */
-        #main-menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            pointer-events: auto; z-index: 10;
-        }
-        h1 {
-            font-size: 60px; color: #fff; text-transform: uppercase; letter-spacing: 10px;
-            text-shadow: 0 0 20px #00e5ff, 0 0 40px #00e5ff;
-            margin-bottom: 40px;
-        }
-        .btn {
-            padding: 15px 40px; font-size: 20px; background: transparent; color: #fff;
-            border: 2px solid #00e5ff; cursor: pointer; text-transform: uppercase;
-            transition: 0.3s; margin: 10px;
-        }
-        .btn:hover { background: #00e5ff; color: #000; box-shadow: 0 0 20px #00e5ff; }
-        .btn:disabled { opacity: 0.5; cursor: wait; }
-        #load-status { color: #fff; max-width: 500px; padding: 0 20px; text-align: center; }
-        @media (max-width: 600px) { h1 { font-size: 36px; letter-spacing: 4px; } }
-        
-        /* HUD */
-        #hud { display: none; padding: 20px; color: #fff; text-shadow: 0 0 5px #000; }
-        .hud-group { display: flex; justify-content: space-between; align-items: flex-end; }
-        #speedometer { font-size: 50px; font-weight: bold; color: #00e5ff; }
-        #gear { font-size: 30px; color: #ff0055; margin-left: 20px; }
-        #controls { position: absolute; bottom: 20px; right: 20px; font-size: 12px; color: #888; }
-        
-        /* Pause Menu */
-        #pause-menu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 40px; border: 1px solid #00e5ff; text-align: center; pointer-events: auto; z-index: 10; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101e24">
+  <meta name="description" content="Race three laps of Sunridge Motor Park. Velocity X runs directly in your browser with WebAssembly driving physics.">
+  <title>Velocity X — Sunridge Time Attack</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101e24'/%3E%3Cpath d='M12 16l14 32h12l14-32H39l-7 19-7-19z' fill='%237ae3d2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./vendor/three.r128.min.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
-    <div id="ui-layer">
-        <div id="main-menu">
-            <h1>VELOCITY X</h1>
-            <button id="drive-button" class="btn" onclick="startGame()" disabled>Drive</button>
-            <p id="load-status" role="status">Loading game...</p>
-            <noscript><p style="color:white">Enable JavaScript in your browser to play.</p></noscript>
-        </div>
-        <div id="hud">
-            <div class="hud-group">
-                <div id="speedometer">0 <span style="font-size:20px">KM/H</span></div>
-                <div id="gear">N</div>
-            </div>
-        </div>
-        <div id="pause-menu">
-            <h2>PAUSED</h2>
-            <button class="btn" onclick="resumeGame()">Resume</button>
-        </div>
-        <div id="controls">WASD: Drive | SPACE: Brake | C: Camera</div>
-    </div>
-
-    <!-- Ship the engine with the game so starting does not depend on a third-party CDN. -->
-    <script src="./vendor/three.r128.min.js"></script>
-    
-    <script>
-        function showStartupError(error) {
-            console.error('Unable to start Velocity X:', error);
-            document.getElementById('load-status').textContent =
-                'Unable to load the 3D game. Reload the page and check that WebGL / hardware acceleration is enabled in your browser.';
-            document.getElementById('drive-button').disabled = true;
-        }
-
-        try {
-        if (!window.THREE) throw new Error('The bundled Three.js engine could not be loaded.');
-        // --- GAME STATE ---
-        const state = { 
-            isPlaying: false, 
-            isPaused: false, 
-            speed: 0, 
-            steering: 0 
-        };
-
-        // --- CONFIG ---
-        const config = {
-            maxSpeed: 320, // Simulated KM/H
-            accel: 0.8,
-            brake: 2.0,
-            friction: 0.98,
-            steerSpeed: 0.05
-        };
-
-        // --- SCENE SETUP ---
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000011, 0.002);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 3, -6);
-        camera.lookAt(0, 0, 10);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-
-        // --- LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0x404040, 2);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-        dirLight.position.set(50, 100, 50);
-        dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
-        scene.add(dirLight);
-
-        // --- WORLD ASSETS ---
-        // Road
-        const roadGeo = new THREE.PlaneGeometry(40, 4000);
-        const roadMat = new THREE.MeshStandardMaterial({ 
-            color: 0x1a1a1a, 
-            roughness: 0.8,
-            metalness: 0.2
-        });
-        const road = new THREE.Mesh(roadGeo, roadMat);
-        road.rotation.x = -Math.PI / 2;
-        road.position.z = 2000;
-        road.receiveShadow = true;
-        scene.add(road);
-
-        // Road Lines (Stripes)
-        const stripeGeo = new THREE.PlaneGeometry(1, 4000);
-        const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const leftLine = new THREE.Mesh(stripeGeo, stripeMat);
-        leftLine.position.set(-10, 0.01, 2000);
-        leftLine.rotation.x = -Math.PI / 2;
-        scene.add(leftLine);
-
-        const rightLine = new THREE.Mesh(stripeGeo, stripeMat);
-        rightLine.position.set(10, 0.01, 2000);
-        rightLine.rotation.x = -Math.PI / 2;
-        scene.add(rightLine);
-
-        // Barriers
-        function createBarrier(x) {
-            const geo = new THREE.BoxGeometry(2, 4, 4000);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, 2, 2000);
-            mesh.castShadow = true;
-            scene.add(mesh);
-        }
-        createBarrier(-25);
-        createBarrier(25);
-
-        // Car Group
-        const car = new THREE.Group();
-        scene.add(car);
-
-        // Car Body (Procedural)
-        const bodyGeo = new THREE.BoxGeometry(2, 0.8, 4.5);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xcc0000, roughness: 0.2, metalness: 0.6 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.y = 0.8;
-        body.castShadow = true;
-        car.add(body);
-
-        // Car Top
-        const topGeo = new THREE.BoxGeometry(1.8, 0.6, 2);
-        const topMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
-        const carRoof = new THREE.Mesh(topGeo, topMat);
-        carRoof.position.set(0, 1.5, -0.2);
-        car.add(carRoof);
-
-        // Wheels
-        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 16);
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-        
-        function createWheel(x, z) {
-            const w = new THREE.Mesh(wheelGeo, wheelMat);
-            w.rotation.z = Math.PI / 2;
-            w.position.set(x, 0.4, z);
-            w.castShadow = true;
-            car.add(w);
-        }
-        createWheel(-1, 1.5); // Front L
-        createWheel(1, 1.5);  // Front R
-        createWheel(-1, -1.5); // Rear L
-        createWheel(1, -1.5);  // Rear R
-
-        // Headlights
-        const lightGeo = new THREE.BoxGeometry(0.6, 0.2, 0.1);
-        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const hl1 = new THREE.Mesh(lightGeo, lightMat);
-        hl1.position.set(-0.8, 0.8, 2.3);
-        car.add(hl1);
-        const hl2 = hl1.clone();
-        hl2.position.set(0.8, 0.8, 2.3);
-        car.add(hl2);
-
-        // Ground Plane
-        const groundGeo = new THREE.PlaneGeometry(2000, 4000);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x050505 });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
-
-        // --- INPUT HANDLING ---
-        const keys = { w: false, s: false, a: false, d: false, space: false };
-
-        document.addEventListener('keydown', (e) => {
-            switch(e.key.toLowerCase()) {
-                case 'w': keys.w = true; break;
-                case 's': keys.s = true; break;
-                case 'a': keys.a = true; break;
-                case 'd': keys.d = true; break;
-                case ' ': keys.space = true; break;
-                case 'c': toggleCamera(); break;
-                case 'escape': if (!e.repeat) togglePause(); break;
-                case 'enter': startGame(); break;
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            switch(e.key.toLowerCase()) {
-                case 'w': keys.w = false; break;
-                case 's': keys.s = false; break;
-                case 'a': keys.a = false; break;
-                case 'd': keys.d = false; break;
-                case ' ': keys.space = false; break;
-            }
-        });
-
-        // --- GAME LOGIC ---
-        let cameraMode = 0;
-        const cameraPos = {
-            0: { x: 0, y: 3, z: -6 }, // Chase
-            1: { x: 0, y: 1.2, z: 2 },  // Hood
-            2: { x: -1.2, y: 1.5, z: 0.5 } // Cockpit
-        };
-
-        function toggleCamera() {
-            cameraMode = (cameraMode + 1) % 3;
-        }
-
-        function updatePhysics() {
-            if (!state.isPlaying) return;
-
-            // Acceleration
-            if (keys.w) state.speed += config.accel;
-            if (keys.s) state.speed -= config.brake;
-            
-            // Brake
-            if (keys.space) {
-                state.speed *= 0.95;
-            }
-
-            // Friction
-            state.speed *= config.friction;
-
-            // Steering
-            if (Math.abs(state.speed) > 1) {
-                const dir = (state.speed > 0) ? 1 : -1;
-                if (keys.a) state.steering = config.steerSpeed;
-                else if (keys.d) state.steering = -config.steerSpeed;
-                else state.steering = 0;
-                
-                car.rotation.y += state.steering * dir;
-            }
-
-            // Cap speed
-            state.speed = Math.max(Math.min(state.speed, config.maxSpeed), -config.maxSpeed/2);
-
-            // Move Car
-            car.position.z += state.speed * 0.02;
-            car.position.x -= Math.sin(car.rotation.y) * state.speed * 0.02;
-            car.position.x = Math.max(-22, Math.min(22, car.position.x));
-            // Repeat the straight road instead of driving beyond its end.
-            const wrappedZ = (car.position.z + 4000) % 4000;
-            camera.position.z += wrappedZ - car.position.z;
-            car.position.z = wrappedZ;
-        }
-
-        function updateCamera() {
-            // Smooth camera follow
-            const target = cameraPos[cameraMode];
-            camera.position.x += (car.position.x + target.x - camera.position.x) * 0.1;
-            camera.position.y += (car.position.y + target.y - camera.position.y) * 0.1;
-            camera.position.z += (car.position.z + target.z - camera.position.z) * 0.1;
-            
-            camera.lookAt(car.position.x, car.position.y, car.position.z + 10);
-        }
-
-        function updateUI() {
-            const speed = Math.abs(Math.floor(state.speed * 1.5)); // Scale for realism
-            document.getElementById('speedometer').innerHTML = `${speed} <span style="font-size:20px">KM/H</span>`;
-            
-            let gear = 'N';
-            if (state.speed > 20) gear = 'D';
-            if (state.speed > 60) gear = '2';
-            if (state.speed > 120) gear = '3';
-            if (state.speed > 180) gear = '4';
-            if (state.speed > 240) gear = '5';
-            if (state.speed > 300) gear = '6';
-            
-            if (state.speed < -10) gear = 'R';
-            document.getElementById('gear').innerText = gear;
-        }
-
-        // --- GAME LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            if (!state.isPaused) {
-                updatePhysics();
-                updateCamera();
-                updateUI();
-            }
-            renderer.render(scene, camera);
-        }
-
-        // --- UI CONTROLS ---
-        function startGame() {
-            if (state.isPlaying) return;
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('hud').style.display = 'block';
-            state.isPlaying = true;
-            state.isPaused = false;
-            animate();
-        }
-
-        function togglePause() {
-            if (!state.isPlaying) return;
-            state.isPaused = !state.isPaused;
-            document.getElementById('pause-menu').style.display = state.isPaused ? 'block' : 'none';
-        }
-
-        function resumeGame() {
-            togglePause();
-        }
-
-        // Functions declared inside the startup guard are explicitly exposed to menu buttons.
-        window.startGame = startGame;
-        window.resumeGame = resumeGame;
-        renderer.render(scene, camera);
-        document.getElementById('drive-button').disabled = false;
-        document.getElementById('load-status').textContent = 'Ready. Click Drive, then hold W to accelerate.';
-        window.addEventListener('blur', () => {
-            Object.keys(keys).forEach(key => keys[key] = false);
-            if (state.isPlaying && !state.isPaused) togglePause();
-        });
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-        } catch (error) {
-            showStartupError(error);
-        }
-
-    </script>
+  <main id="game" aria-label="Sunridge racing game"></main>
+  <div id="hud" aria-label="Race dashboard">
+    <header class="brand glass"><strong>VELOCITY <span>/ X</span></strong><small>SUNRIDGE / CIRCUIT 01</small></header>
+    <section class="timing glass" aria-label="Lap timing">
+      <div><small>LAP</small><b id="lap">1 <em>/ 3</em></b></div>
+      <div><small>CURRENT</small><b id="current-time">—:—.---</b></div>
+      <div class="best"><small>BEST</small><b id="best-time">—:—.---</b></div>
+    </section>
+    <div id="notice" role="status"></div>
+    <section class="map glass"><small>TRACK POSITION</small><canvas id="minimap" width="420" height="250" aria-label="Car position and next checkpoint"></canvas><span id="checkpoint">CHECKPOINT 01 / 16</span></section>
+    <section class="speed glass" aria-label="Vehicle telemetry">
+      <div class="speed-head"><span id="car-name">APEX GT</span><b id="gear">N</b></div>
+      <div class="speed-value"><strong id="speed">000</strong><small>KM/H</small></div>
+      <div class="rpm"><i id="rpm-fill"></i></div>
+      <small>BOOST / SHIFT</small><div class="boost"><i id="boost-fill"></i></div>
+    </section>
+    <div id="offroad">OFF TRACK / GRIP REDUCED</div>
+    <footer id="hints"><span>WASD / ARROWS &nbsp; Drive &nbsp; SPACE &nbsp; Handbrake &nbsp; SHIFT &nbsp; Boost &nbsp; C &nbsp; Camera &nbsp; R &nbsp; Recover</span><span>P / ESC &nbsp; Pause &nbsp; F5 &nbsp; Restart &nbsp; F1 &nbsp; Graphics &nbsp; Gamepad supported</span></footer>
+    <nav id="toolbar" aria-label="Game options"><button id="pause-button" aria-label="Pause game" title="Pause / resume">Ⅱ</button><button id="camera-button" aria-label="Change camera" title="Change camera">CAM</button><button id="recover-button" aria-label="Recover car" title="Recover at last checkpoint">R</button><button id="sound-button" aria-label="Toggle sound" title="Toggle sound" aria-pressed="false">SOUND</button><button id="fullscreen-button" aria-label="Toggle fullscreen" title="Fullscreen">⛶</button></nav>
+  </div>
+  <div id="countdown" role="status"></div>
+  <div id="overlay">
+    <section id="main-menu" class="panel" aria-labelledby="menu-title">
+      <div class="eyebrow">SUNRIDGE MOTOR PARK / TIME ATTACK</div>
+      <h1 id="menu-title">VELOCITY <span>/ X</span></h1>
+      <p class="tagline">THREE LAPS. FIND YOUR LIMIT.</p>
+      <div id="car-options" role="group" aria-label="Choose your car">
+        <button class="car-option selected" data-car="0" aria-pressed="true"><strong><span>1</span> APEX GT</strong><small>BALANCED</small><span class="spec">320 km/h · All-round grip</span></button>
+        <button class="car-option" data-car="1" aria-pressed="false"><strong><span>2</span> VELOCE R</strong><small>TRACK GRIP</small><span class="spec">328 km/h · Sharp response</span></button>
+        <button class="car-option" data-car="2" aria-pressed="false"><strong><span>3</span> TITAN X</strong><small>TOP SPEED</small><span class="spec">378 km/h · Strong acceleration</span></button>
+      </div>
+      <button id="drive-button" class="primary" disabled>LOADING ENGINE…</button>
+      <p id="load-status" role="status">Loading WebAssembly driving engine…</p>
+      <p class="menu-help">Follow all 16 checkpoints in order. Your best lap stays on this device.</p>
+      <p class="menu-controls">ENTER &nbsp; Start &nbsp; · &nbsp; WASD &nbsp; Drive &nbsp; · &nbsp; SHIFT &nbsp; Boost</p>
+      <noscript><p>Enable JavaScript to play this game.</p></noscript>
+    </section>
+    <section id="pause-menu" class="panel compact" hidden aria-labelledby="pause-title">
+      <div class="eyebrow">VELOCITY / X</div><h2 id="pause-title">TAKE A BREATHER.</h2><p>Your race is paused.</p>
+      <button id="resume-button" class="primary">RESUME RACE</button><button id="restart-button" class="secondary">RESTART SESSION</button><button id="menu-button" class="secondary">CAR SELECTION</button>
+    </section>
+    <section id="results" class="panel compact" hidden aria-labelledby="results-title">
+      <div class="eyebrow">SUNRIDGE / THREE LAPS COMPLETE</div><h2 id="results-title">SESSION COMPLETE.</h2>
+      <dl><div><dt>TOTAL TIME</dt><dd id="result-time"></dd></div><div><dt>BEST LAP</dt><dd id="result-best"></dd></div></dl>
+      <button id="again-button" class="primary">RACE AGAIN</button><button id="results-menu-button" class="secondary">CAR SELECTION</button>
+    </section>
+  </div>
+  <div id="touch-controls" aria-label="Touch driving controls">
+    <div><button data-key="ArrowLeft" aria-label="Steer left">◀</button><button data-key="ArrowRight" aria-label="Steer right">▶</button><button data-key="Space" class="touch-small" aria-label="Handbrake">DRIFT</button></div>
+    <div><button data-key="ShiftLeft" class="touch-small" aria-label="Boost">BOOST</button><button data-key="ArrowDown" aria-label="Brake or reverse">BRAKE</button><button data-key="ArrowUp" class="gas" aria-label="Accelerate">GAS</button></div>
+  </div>
 </body>
 </html>

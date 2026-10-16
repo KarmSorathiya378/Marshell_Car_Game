@@ -46,14 +46,16 @@
 
 ## Ways to Play
 
+The web edition now ports the **Sunridge circuit and racing rules** from the Unreal game: portable C++ driving runs in **WebAssembly**, and a browser renderer draws the original coupe and scenery assets. Players run independent races on their own devices. See [WEB_BUILD.md](WEB_BUILD.md) for setup, rebuilding, deployment, and differences from the Unreal renderer.
+
 After analyzing the codebase, there are **two distinct ways** to play this game:
 
 | Feature | Method 1: Web Edition (`VelocityX_Web`) | Method 2: Unreal Engine (`VelocityX`) |
 | :--- | :--- | :--- |
 | **Requirements** | Any modern web browser (Chrome, Edge, Firefox, Brave) | Unreal Engine 5.3+ installed |
 | **Install Time** | 0 seconds (instant play) | Requires UE installation & build |
-| **Physics / Graphics** | Three.js WebGL 3D canvas | Unreal Engine DX11/DX12, high-res materials |
-| **Best For** | Quick preview, low-spec PCs, zero-install play | Full arcade experience, audio, gamepad |
+| **Physics / Graphics** | C++ WebAssembly physics + Three.js WebGL | Unreal Engine DX11/DX12 |
+| **Best For** | Browser time attack with keyboard, gamepad or touch | Native Unreal experience |
 
 ---
 
@@ -61,26 +63,26 @@ After analyzing the codebase, there are **two distinct ways** to play this game:
 
 If you do not have Unreal Engine installed or want to test and play immediately:
 
-1. Open the [VelocityX_Web](VelocityX_Web) directory.
-2. Double-click [index.html](VelocityX_Web/index.html) to launch it directly in your web browser (or run `python -m http.server 8000 --directory VelocityX_Web` and open `http://localhost:8000`). Keep the `vendor` folder alongside `index.html`; it contains the bundled Three.js engine and its license.
-3. Click **Drive** on the main menu.
-4. Drive with `W`, `A`, `S`, `D`, brake with `Space`, and cycle cameras with `C`.
+1. From the repository root, run `npm run dev` with Node.js 24 installed.
+2. Open `http://127.0.0.1:8000` (or visit the deployed website). WASM and asset loading require HTTP; do not double-click the HTML file.
+3. Select a car and click **Start your engine**, or press **Enter**.
+4. Drive with WASD/arrows, handbrake with Space, boost with Shift, and change cameras with C. Phones have touch controls. Pass all sixteen checkpoints in order for three laps.
 
 ### Deploy the browser edition to Vercel
 
-Use the repository root as Vercel's **Root Directory** and **Other** as the framework preset. The root `vercel.json` runs `npm run check` before publishing only `VelocityX_Web`. No dependency installation is needed. Commit and push the web files, including `VelocityX_Web/vendor`, `package.json`, `tests`, and `vercel.json`, then redeploy.
+Use the repository root as Vercel's **Root Directory** and **Other** as the framework preset. The root `vercel.json` runs `npm run check` before publishing only `VelocityX_Web`. Compiled WASM and assets are committed; Vercel needs no compiler or dependency installation. Commit and push the web files, C++ source, build script, tests, package files, and `vercel.json`, then redeploy.
 
 If your Vercel project currently uses `VelocityX_Web` as its Root Directory, change it to the repository root (leave the Root Directory field empty) so Vercel can read `vercel.json`, `package.json`, and the tests. Remove any old dashboard overrides that skip the build step. The configured output remains `VelocityX_Web`.
 
-Wait for the menu to say **Ready**, click **Drive**, and hold **W** to accelerate. This edition uses a keyboard. If the engine or WebGL cannot initialize, the menu displays an error instead of leaving an unresponsive Drive button. The Unreal project is a separate native edition; the deployable browser game is in `VelocityX_Web`.
+Wait for **Ready**, select a car, and start the race. If WASM, meshes, or WebGL fail to initialize, the menu displays an error. Each browser runs the game locally; your PC does not need to remain on and no GPU streaming server is required. Rendering and barrier collision differ from Unreal; details are in [WEB_BUILD.md](WEB_BUILD.md).
 
 ### Automatic checks before publishing
 
 Every push and pull request runs the **Game checks / Web game checks** GitHub Actions workflow. View its result in the repository's **Actions** tab or the pull request checks. To run the same checks locally, install Node.js 24 and run `npm run check` from the repository root.
 
-The checks validate JavaScript syntax, local engine assets, startup with browser globals, Drive, acceleration direction, pause/resume, focus loss, and startup error handling. They execute the shipped game with the real Three.js engine and a simulated DOM and renderer; they do not validate actual GPU rendering or device compatibility. They cover the browser edition, not the Unreal project.
+The core checks validate WASM provenance, JavaScript syntax, mesh integrity, native dynamics and race-order regressions, timing, recovery, and complete three-lap races for every preset. GitHub Actions also rebuilds WASM with Emscripten 6.0.12 and runs actual desktop/mobile Chromium browser tests. Run those locally with `npm ci`, `npx playwright install chromium`, then `npm run test:browser`. The checks cover the browser port, not the Unreal runtime.
 
-For each Git deployment, Vercel independently runs that same command as its build step. A nonzero exit stops the deployment, keeping the previous working production deployment live. GitHub Actions and Vercel run in parallel; Vercel gates publication on its own copy of the checks, not on the Actions status. No Vercel token or GitHub deployment secret is required. Keep the GitHub repository connected to Vercel with `main` as its production branch.
+For each Git deployment, Vercel independently runs `npm run check` as its build step. A nonzero exit stops the deployment, keeping the previous production deployment live. GitHub Actions and Vercel run in parallel; Vercel gates publication on its core checks, not on the Actions/browser-test status. No Vercel token or GitHub deployment secret is required. Keep the GitHub repository connected to Vercel with `main` as its production branch.
 
 Optional: add a GitHub branch ruleset for `main` requiring pull requests and the **Web game checks** status before merging. This also prevents unchecked changes from being merged; the Vercel build check protects deployments independently.
 

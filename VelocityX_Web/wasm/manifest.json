@@ -1,0 +1,6 @@
+{
+  "compiler": "Emscripten 6.0.12",
+  "sourceHash": "ad73a78394d84fbba5f9dea1be92261f273b574fd825ddea60d10702c3415e13",
+  "recipeHash": "56582345c8c9395d4356170c2f6cc89fdc1bfda54055a86178f2ad888cc2ace5",
+  "wasmHash": "195ac743ba1645aeb9543b021382826b7a139a9ec7df5a31eb4329bf6a40cd38"
+}
