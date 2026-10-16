@@ -62,7 +62,7 @@ npm run test:browser
 
 Desktop and mobile viewport tests exercise rendering, car selection, driving, boost, steering, pause/resume, cameras, recovery, saved best times, restricted storage, missing assets/WASM, and unavailable WebGL. They also check that gameplay makes no external requests. On Windows an existing Chromium browser can be used by setting `VX_BROWSER_PATH` to its executable. Mobile viewport tests are emulation, not real-device certification.
 
-GitHub Actions installs the pinned compiler, rebuilds WASM, checks that it matches the committed artifacts, runs the core checks and then the browser suite. Failure artifacts contain screenshots/traces.
+GitHub Actions checks the committed artifact, installs the pinned compiler, rebuilds WASM on Linux, and runs the same core checks against that fresh build before the browser suite. Windows and Linux output can differ byte-for-byte; both must pass the race regressions. Failure artifacts contain screenshots/traces.
 
 Vercel's **Root Directory** must be the repository root (empty in the dashboard), with **Other** as the framework preset. The committed `vercel.json` runs `npm run check` and publishes only `VelocityX_Web`. It serves the already compiled `.wasm` and mesh files; it does not download Emscripten or compile Unreal. Vercel's own core checks block a failing build. GitHub's browser suite runs independently; it is not a required Vercel deployment check unless separately configured in Vercel.
 

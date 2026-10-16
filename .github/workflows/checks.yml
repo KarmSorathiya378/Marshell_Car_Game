@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci
+      - name: Check the committed browser artifacts
+        run: npm run check
       - name: Install the pinned WebAssembly compiler
         run: |
           git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
@@ -30,9 +32,8 @@ jobs:
           "$RUNNER_TEMP/emsdk/emsdk" activate 6.0.12
           echo "EMXX=$RUNNER_TEMP/emsdk/upstream/emscripten/em++" >> "$GITHUB_ENV"
       - run: npm run build:wasm
-      - name: Check committed WASM matches a fresh build
-        run: git diff --exit-code -- VelocityX_Web/wasm
-      - run: npm run check
+      - name: Check a fresh Linux WASM build
+        run: npm run check
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - uses: actions/upload-artifact@v4
