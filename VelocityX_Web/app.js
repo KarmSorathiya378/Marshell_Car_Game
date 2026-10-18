@@ -158,6 +158,23 @@
       catch { notify('FULLSCREEN IS UNAVAILABLE IN THIS BROWSER'); }
     });
     if (!document.documentElement.requestFullscreen) $('fullscreen-button').hidden = true;
+    function updateOrientation() {
+      const overlay = $('orientation-overlay');
+      if (!overlay) return;
+      if (window.matchMedia && window.matchMedia('(orientation: portrait)').matches) {
+        overlay.style.display = 'flex';
+      } else {
+        overlay.style.display = 'none';
+      }
+    }
+    updateOrientation();
+    window.addEventListener('resize', updateOrientation);
+    window.addEventListener('orientationchange', updateOrientation);
+    if (window.matchMedia) {
+      const portraitMql = window.matchMedia('(orientation: portrait)');
+      if (portraitMql.addEventListener) portraitMql.addEventListener('change', updateOrientation);
+      else if (portraitMql.addListener) portraitMql.addListener(updateOrientation);
+    }
   }
   function readInput() {
     const down = (...codes) => codes.some(code => keys.has(code));

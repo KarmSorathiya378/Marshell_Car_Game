@@ -1,6 +1,1444 @@
-:root{color-scheme:dark;--ice:#e0eef0;--teal:#80e8d8;--muted:#91a9af;--ink:rgba(16,32,42,.88)}
-*{box-sizing:border-box}body{margin:0;background:#17242b;color:var(--ice);font-family:Arial,Helvetica,sans-serif;overflow:hidden}button{font:inherit;cursor:pointer;color:inherit;border:0}button:focus-visible{outline:3px solid white;outline-offset:4px}button:disabled{opacity:.5;cursor:wait}[hidden]{display:none!important}#game,canvas.scene,#hud,#overlay{position:fixed;inset:0}canvas.scene{display:block;width:100%;height:100%}#hud{pointer-events:none;padding:24px}.glass{background:var(--ink);backdrop-filter:blur(8px)}small,.eyebrow{font-size:10px;letter-spacing:1.3px;color:var(--muted)}.brand{position:absolute;left:24px;top:24px;width:220px;padding:16px 20px;border-left:2px solid var(--teal)}.brand strong{display:block;font-size:18px;letter-spacing:1.6px}.brand span{color:var(--teal)}.brand small{display:block;margin-top:8px;font-size:8px}.timing{position:absolute;top:24px;right:24px;width:270px;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 20px}.timing small{display:block;font-size:9px;margin-bottom:6px}.timing b{font-size:18px;font-weight:400;font-variant-numeric:tabular-nums}.timing em{font-style:normal;color:var(--muted)}.timing .best{grid-column:1/-1;display:flex;align-items:center;gap:25px}.timing .best small{margin:0}.timing .best b{color:var(--teal);font-size:14px}.map{position:absolute;bottom:25px;left:24px;width:220px;height:190px;padding:14px 16px}.map canvas{display:block;width:188px;height:120px}.map span{font-size:10px;color:var(--muted);letter-spacing:1px}.speed{position:absolute;bottom:25px;right:24px;width:270px;padding:18px 22px}.speed-head{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11px}.speed-head b{font-size:24px;color:var(--teal);font-weight:400}.speed-value{display:flex;align-items:baseline;justify-content:space-between}.speed-value strong{font-size:58px;font-weight:300;letter-spacing:-2px;font-variant-numeric:tabular-nums}.speed-value small{font-size:10px}.rpm,.boost{height:5px;background:#253e46;overflow:hidden;margin:10px 0 14px}.rpm{background:repeating-linear-gradient(90deg,#263c44 0,#263c44 7px,transparent 7px,transparent 10px)}.rpm i,.boost i{display:block;height:100%;background:var(--teal);width:0}.boost{margin-bottom:0}.boost i{width:100%;transition:width .08s linear}#hints{position:absolute;bottom:28px;left:270px;right:318px;font-size:10px;line-height:1.8;color:#b2c3c6}#hints span{display:block}#notice{position:absolute;top:145px;left:50%;transform:translateX(-50%);padding:12px 25px;background:var(--ink);color:var(--teal);font-size:13px;letter-spacing:1px;display:none}#offroad{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);font-size:12px;color:#ffbc73;display:none;white-space:nowrap}#toolbar{pointer-events:auto;position:absolute;top:155px;left:24px;display:flex;gap:6px}#toolbar button{width:45px;height:36px;font-size:9px;background:var(--ink);color:var(--muted)}#toolbar button:hover{color:var(--teal)}#toolbar button:first-child,#fullscreen-button{font-size:20px}#overlay{display:grid;place-items:center;background:rgba(3,12,19,.48);padding:24px;z-index:5}.panel{width:min(700px,100%);padding:36px 42px 30px;background:rgba(18,34,45,.96);border-top:3px solid var(--teal);box-shadow:0 20px 100px #0006}.eyebrow{font-size:10px;letter-spacing:1.8px}h1{margin:20px 0 25px;font-size:42px;letter-spacing:5px;font-weight:500}h1 span{color:var(--teal)}.tagline{font-size:17px;letter-spacing:.3px;margin-bottom:30px}#car-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:30px}.car-option{text-align:left;padding:18px 12px;background:#1b303c;border:1px solid transparent;min-height:108px;transition:background .15s,border-color .15s}.car-option strong{font-size:13px;white-space:nowrap;font-weight:500}.car-option strong span{color:var(--muted);margin-right:4px}.car-option small{display:block;font-size:9px;margin-top:14px;letter-spacing:.6px}.car-option .spec{display:block;color:#9eb6ba;font-size:9px;margin-top:10px}.car-option.selected{background:#294d53;border-color:#67b6ae}.car-option.selected strong{color:var(--teal)}.primary{display:block;background:var(--teal);color:#10272b;padding:16px 22px;font-size:14px;font-weight:bold;letter-spacing:1px;width:100%;text-align:left}.primary:hover{background:#a1f7e8}.secondary{background:#223b47;display:block;width:100%;padding:14px 20px;margin-top:10px;text-align:left;font-size:12px;letter-spacing:1px}.secondary:hover{background:#31505b}#load-status{font-size:12px;color:var(--muted);min-height:16px;margin:15px 0}.menu-help{font-size:11px;color:var(--muted);line-height:1.5}.menu-controls{font-size:10px;color:#bed2d5;margin:17px 0 0}.compact{max-width:490px}.compact h2{font-size:28px;font-weight:400;margin:24px 0}.compact p{color:var(--muted);font-size:13px;margin-bottom:30px}.compact dl{margin:20px 0 30px}.compact dl div{display:flex;justify-content:space-between;margin:20px 0}.compact dt{font-size:11px;color:var(--muted)}.compact dd{margin:0;color:var(--teal);font-variant-numeric:tabular-nums}#countdown{position:fixed;top:36%;left:50%;transform:translateX(-50%);font-size:80px;color:var(--teal);background:var(--ink);padding:8px 30px;z-index:3;display:none}#touch-controls{display:none;position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:16px;right:16px;justify-content:space-between;gap:10px;z-index:4;pointer-events:none}#touch-controls>div{display:flex;gap:8px;align-items:flex-end}#touch-controls button{pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;background:#142a36c9;border:1px solid #7ac7be66;color:var(--ice);width:64px;height:64px;border-radius:8px;font-size:14px}#touch-controls button.active{background:#4e928c}#touch-controls .touch-small{font-size:10px;width:52px;height:46px}#touch-controls .gas{height:80px;background:#2a746fdb}body:not(.racing) #touch-controls{visibility:hidden}
-@media(max-width:1000px){#hints{display:none}.panel{padding:28px 30px}.brand{width:190px}.timing{width:230px}.speed{width:230px}.map{width:200px}.map canvas{width:168px}}
-@media(pointer:coarse){#touch-controls{display:flex}.map{bottom:130px;height:140px;width:160px;padding:10px}.map canvas{width:140px;height:85px}.map small,.map span{font-size:8px}.speed{bottom:130px;width:180px;padding:12px 15px}.speed-value strong{font-size:40px}.rpm{display:none}#offroad{bottom:220px}#toolbar{top:112px}.brand{top:15px;left:15px}.timing{top:15px;right:15px}#countdown{font-size:60px}}
-@media(max-width:600px){#overlay{padding:12px}.panel{padding:24px 20px}.eyebrow{font-size:8px}h1{font-size:31px;letter-spacing:3px;margin:17px 0}.tagline{font-size:13px;margin-bottom:20px}#car-options{gap:6px;margin-bottom:20px}.car-option{padding:14px 8px;min-height:90px}.car-option strong{font-size:10px}.car-option small{font-size:8px;letter-spacing:0}.car-option .spec{display:none}.brand{width:150px;padding:10px 12px}.brand strong{font-size:12px}.brand small{font-size:6px}.timing{width:165px;padding:10px 12px;gap:10px}.timing b{font-size:13px}.timing small{font-size:7px}.timing .best b{font-size:11px}.map{left:15px}.speed{right:15px;width:160px}.speed-head{font-size:9px}#toolbar{left:15px;gap:4px}#toolbar button{width:34px;height:30px;font-size:7px}#toolbar button:first-child{font-size:16px}#touch-controls{left:10px;right:10px}#touch-controls button{width:48px;height:58px;font-size:11px}#touch-controls .touch-small{width:42px;font-size:8px}#notice{top:110px;max-width:80%;font-size:10px;text-align:center}.menu-help{font-size:10px}.menu-controls{font-size:9px}.compact h2{font-size:24px}}
-@media(max-height:540px){.panel{padding:18px 26px;max-width:620px}h1{font-size:28px;margin:10px 0}.tagline{margin:10px 0 14px}#car-options{margin-bottom:15px}.car-option{padding:12px;min-height:72px}.car-option small{margin-top:8px}.car-option .spec{display:none}.menu-help{display:none}.primary{padding:12px 18px}#load-status{margin:10px 0}.menu-controls{margin:8px 0 0}.map{height:125px;bottom:100px}.map canvas{height:75px}.speed{bottom:100px}.speed-value strong{font-size:34px}.boost{margin-top:6px}.brand,.timing{top:12px}#toolbar{top:100px}#offroad{bottom:110px}.compact h2{margin:14px 0}.compact p{margin-bottom:15px}}
+:root {
+  color-scheme: dark;
+  --ice: #e0eef0;
+  --teal: #80e8d8;
+  --muted: #91a9af;
+  --ink: rgba(16, 32, 42, 0.88);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #17242b;
+  color: var(--ice);
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+  padding-bottom: var(--safe-bottom);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+  border: 0;
+  touch-action: manipulation;
+}
+
+button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 4px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Canvas & Screen Positioning with Device Pixel Ratio (DPR) Support */
+#game, canvas.scene, #hud, #overlay {
+  position: fixed;
+  inset: 0;
+}
+
+canvas.scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  image-rendering: auto;
+}
+
+#hud {
+  pointer-events: none;
+  padding: 24px;
+  padding-top: max(24px, var(--safe-top));
+  padding-right: max(24px, var(--safe-right));
+  padding-bottom: max(24px, var(--safe-bottom));
+  padding-left: max(24px, var(--safe-left));
+}
+
+.glass {
+  background: var(--ink);
+  backdrop-filter: blur(8px);
+}
+
+small, .eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.3px;
+  color: var(--muted);
+}
+
+/* Base Desktop HUD Elements */
+.brand {
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  width: 220px;
+  padding: 16px 20px;
+  border-left: 2px solid var(--teal);
+}
+
+.brand strong {
+  display: block;
+  font-size: 18px;
+  letter-spacing: 1.6px;
+}
+
+.brand span {
+  color: var(--teal);
+}
+
+.brand small {
+  display: block;
+  margin-top: 8px;
+  font-size: 8px;
+}
+
+.timing {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 270px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.timing small {
+  display: block;
+  font-size: 9px;
+  margin-bottom: 6px;
+}
+
+.timing b {
+  font-size: 18px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.timing em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.timing .best {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.timing .best small {
+  margin: 0;
+}
+
+.timing .best b {
+  color: var(--teal);
+  font-size: 14px;
+}
+
+.map {
+  position: absolute;
+  bottom: 25px;
+  left: 24px;
+  width: 220px;
+  height: 190px;
+  padding: 14px 16px;
+}
+
+.map canvas {
+  display: block;
+  width: 188px;
+  height: 120px;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.map span {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+.speed {
+  position: absolute;
+  bottom: 25px;
+  right: 24px;
+  width: 270px;
+  padding: 18px 22px;
+}
+
+.speed-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.speed-head b {
+  font-size: 24px;
+  color: var(--teal);
+  font-weight: 400;
+}
+
+.speed-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.speed-value strong {
+  font-size: 58px;
+  font-weight: 300;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-value small {
+  font-size: 10px;
+}
+
+.rpm, .boost {
+  height: 5px;
+  background: #253e46;
+  overflow: hidden;
+  margin: 10px 0 14px;
+}
+
+.rpm {
+  background: repeating-linear-gradient(90deg, #263c44 0, #263c44 7px, transparent 7px, transparent 10px);
+}
+
+.rpm i, .boost i {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+  width: 0;
+}
+
+.boost {
+  margin-bottom: 0;
+}
+
+.boost i {
+  width: 100%;
+  transition: width 0.08s linear;
+}
+
+#hints {
+  position: absolute;
+  bottom: 28px;
+  left: 270px;
+  right: 318px;
+  font-size: 10px;
+  line-height: 1.8;
+  color: #b2c3c6;
+}
+
+#hints span {
+  display: block;
+}
+
+#notice {
+  position: absolute;
+  top: 145px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 25px;
+  background: var(--ink);
+  color: var(--teal);
+  font-size: 13px;
+  letter-spacing: 1px;
+  display: none;
+}
+
+#offroad {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #ffbc73;
+  display: none;
+  white-space: nowrap;
+}
+
+#toolbar {
+  pointer-events: auto;
+  position: absolute;
+  top: 155px;
+  left: 24px;
+  display: flex;
+  gap: 6px;
+}
+
+#toolbar button {
+  width: 45px;
+  height: 36px;
+  font-size: 9px;
+  background: var(--ink);
+  color: var(--muted);
+}
+
+#toolbar button:hover {
+  color: var(--teal);
+}
+
+#toolbar button:first-child, #fullscreen-button {
+  font-size: 20px;
+}
+
+/* Orientation banner / overlay: non-blocking toast at the top */
+#orientation-overlay {
+  display: none;
+  position: fixed;
+  top: max(10px, var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(380px, 90vw);
+  background: rgba(18, 34, 45, 0.96);
+  border: 1px solid var(--teal);
+  border-radius: 8px;
+  padding: 8px 14px;
+  z-index: 6;
+  pointer-events: none;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#orientation-overlay .panel {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+#orientation-overlay h2 {
+  font-size: 14px;
+  color: var(--teal);
+  margin: 0 0 2px;
+}
+
+#orientation-overlay .tagline, #orientation-overlay p {
+  font-size: 10px;
+  color: var(--ice);
+  margin: 0;
+}
+
+@media (orientation: portrait) {
+  #orientation-overlay {
+    display: flex;
+  }
+}
+
+/* Overlay & Menu Panels */
+#overlay {
+  display: grid;
+  place-items: center;
+  background: rgba(3, 12, 19, 0.48);
+  padding: 24px;
+  padding-top: max(24px, var(--safe-top));
+  padding-right: max(24px, var(--safe-right));
+  padding-bottom: max(24px, var(--safe-bottom));
+  padding-left: max(24px, var(--safe-left));
+  z-index: 5;
+  overflow-y: auto;
+}
+
+.panel {
+  width: min(700px, 100%);
+  padding: 36px 42px 30px;
+  background: rgba(18, 34, 45, 0.96);
+  border-top: 3px solid var(--teal);
+  box-shadow: 0 20px 100px #0006;
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+
+h1 {
+  margin: 20px 0 25px;
+  font-size: 42px;
+  letter-spacing: 5px;
+  font-weight: 500;
+}
+
+h1 span {
+  color: var(--teal);
+}
+
+.tagline {
+  font-size: 17px;
+  letter-spacing: 0.3px;
+  margin-bottom: 30px;
+}
+
+#car-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.car-option {
+  text-align: left;
+  padding: 18px 12px;
+  background: #1b303c;
+  border: 1px solid transparent;
+  min-height: 108px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.car-option strong {
+  font-size: 13px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.car-option strong span {
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.car-option small {
+  display: block;
+  font-size: 9px;
+  margin-top: 14px;
+  letter-spacing: 0.6px;
+}
+
+.car-option .spec {
+  display: block;
+  color: #9eb6ba;
+  font-size: 9px;
+  margin-top: 10px;
+}
+
+.car-option.selected {
+  background: #294d53;
+  border-color: #67b6ae;
+}
+
+.car-option.selected strong {
+  color: var(--teal);
+}
+
+.primary {
+  display: block;
+  background: var(--teal);
+  color: #10272b;
+  padding: 16px 22px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  width: 100%;
+  text-align: left;
+}
+
+.primary:hover {
+  background: #a1f7e8;
+}
+
+.secondary {
+  background: #223b47;
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 10px;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.secondary:hover {
+  background: #31505b;
+}
+
+#load-status {
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 16px;
+  margin: 15px 0;
+}
+
+.menu-help {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.menu-controls {
+  font-size: 10px;
+  color: #bed2d5;
+  margin: 17px 0 0;
+}
+
+.compact {
+  max-width: 490px;
+}
+
+.compact h2 {
+  font-size: 28px;
+  font-weight: 400;
+  margin: 24px 0;
+}
+
+.compact p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 30px;
+}
+
+.compact dl {
+  margin: 20px 0 30px;
+}
+
+.compact dl div {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.compact dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.compact dd {
+  margin: 0;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+
+#countdown {
+  position: fixed;
+  top: 36%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 80px;
+  color: var(--teal);
+  background: var(--ink);
+  padding: 8px 30px;
+  z-index: 3;
+  display: none;
+}
+
+/* Touch Controls */
+#touch-controls {
+  display: none;
+  position: fixed;
+  bottom: max(16px, var(--safe-bottom));
+  left: max(16px, var(--safe-left));
+  right: max(16px, var(--safe-right));
+  padding-bottom: var(--safe-bottom);
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+#touch-controls > div {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+#touch-controls button {
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background: #142a36c9;
+  border: 1px solid #7ac7be66;
+  color: var(--ice);
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+#touch-controls button:active, #touch-controls button.active {
+  background: #4e928c;
+  border-color: var(--teal);
+}
+
+#touch-controls .touch-small {
+  font-size: 10px;
+  width: 52px;
+  height: 46px;
+}
+
+#touch-controls .gas {
+  height: 80px;
+  background: #2a746fdb;
+}
+
+body:not(.racing) #touch-controls {
+  visibility: hidden;
+}
+
+/* ==========================================================================
+   Responsive Optimizations
+   ========================================================================== */
+
+/* 1. For screens with width < 1000px (mobile/tablet):
+   - Reduce HUD element sizes (brand, timing, speed, map)
+   - Stack timing and speed elements vertically on smaller screens
+   - Adjust positioning to avoid overlap */
+@media (max-width: 1000px) {
+  #hints {
+    display: none;
+  }
+  .panel {
+    padding: 24px 28px;
+  }
+
+  /* Reduce HUD element sizes */
+  .brand {
+    width: 175px;
+    padding: 10px 14px;
+    top: max(16px, var(--safe-top));
+    left: max(16px, var(--safe-left));
+  }
+  .brand strong {
+    font-size: 14px;
+    letter-spacing: 1.2px;
+  }
+  .brand small {
+    font-size: 7.5px;
+    margin-top: 4px;
+  }
+
+  .timing {
+    width: 200px;
+    padding: 10px 14px;
+    gap: 8px 10px;
+    top: max(16px, var(--safe-top));
+    right: max(16px, var(--safe-right));
+  }
+  .timing b {
+    font-size: 14px;
+  }
+  .timing small {
+    font-size: 8px;
+  }
+  .timing .best b {
+    font-size: 12px;
+  }
+
+  .speed {
+    width: 200px;
+    padding: 12px 16px;
+    bottom: max(16px, var(--safe-bottom));
+    right: max(16px, var(--safe-right));
+  }
+  .speed-head {
+    font-size: 10px;
+  }
+  .speed-head b {
+    font-size: 18px;
+  }
+  .speed-value strong {
+    font-size: 42px;
+  }
+
+  .map {
+    width: 170px;
+    height: 145px;
+    padding: 10px 12px;
+    bottom: max(16px, var(--safe-bottom));
+    left: max(16px, var(--safe-left));
+  }
+  .map canvas {
+    width: 146px;
+    height: 92px;
+  }
+  .map span {
+    font-size: 8.5px;
+  }
+
+  #toolbar {
+    top: calc(max(16px, var(--safe-top)) + 56px);
+    left: max(16px, var(--safe-left));
+  }
+  #toolbar button {
+    width: 38px;
+    height: 32px;
+    font-size: 8px;
+  }
+  #toolbar button:first-child, #fullscreen-button {
+    font-size: 17px;
+  }
+}
+
+/* Stack timing and speed elements vertically on smaller screens (<= 768px) */
+@media (max-width: 768px) {
+  .timing {
+    top: max(10px, var(--safe-top));
+    right: max(12px, var(--safe-right));
+    width: 155px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .timing > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing small {
+    display: inline-block;
+    margin-bottom: 0;
+    font-size: 7.5px;
+  }
+  .timing b {
+    font-size: 12px;
+  }
+  .timing .best {
+    margin-top: 2px;
+    padding-top: 3px;
+    border-top: 1px solid rgba(128, 232, 216, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing .best b {
+    font-size: 11px;
+  }
+
+  /* Speed element stacked vertically below timing to clear bottom area and avoid overlap */
+  .speed {
+    top: calc(max(10px, var(--safe-top)) + 70px);
+    right: max(12px, var(--safe-right));
+    bottom: auto;
+    width: 155px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .speed-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8.5px;
+  }
+  .speed-head b {
+    font-size: 15px;
+  }
+  .speed-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .speed-value strong {
+    font-size: 30px;
+    letter-spacing: -1px;
+  }
+  .speed-value small {
+    font-size: 8px;
+  }
+  .rpm {
+    display: none;
+  }
+  .boost {
+    height: 3px;
+    margin: 4px 0 0;
+  }
+
+  .brand {
+    top: max(10px, var(--safe-top));
+    left: max(12px, var(--safe-left));
+    width: 140px;
+    padding: 7px 10px;
+  }
+  .brand strong {
+    font-size: 11.5px;
+  }
+  .brand small {
+    font-size: 6.5px;
+    margin-top: 2px;
+  }
+
+  #toolbar {
+    top: calc(max(10px, var(--safe-top)) + 46px);
+    left: max(12px, var(--safe-left));
+    gap: 4px;
+  }
+  #toolbar button {
+    width: 32px;
+    height: 26px;
+    font-size: 7.5px;
+  }
+  #toolbar button:first-child, #fullscreen-button {
+    font-size: 15px;
+  }
+
+  .map {
+    bottom: max(12px, var(--safe-bottom));
+    left: max(12px, var(--safe-left));
+    width: 135px;
+    height: 105px;
+    padding: 6px 8px;
+  }
+  .map canvas {
+    width: 118px;
+    height: 68px;
+  }
+  .map small, .map span {
+    font-size: 7.5px;
+  }
+}
+
+/* 2. For screens with width < 600px:
+   - Make car option cards smaller or change to list view
+   - Simplify the menu layout
+   - Adjust typography sizes for readability */
+@media (max-width: 600px) {
+  #overlay {
+    padding: max(10px, var(--safe-top)) max(10px, var(--safe-right)) max(10px, var(--safe-bottom)) max(10px, var(--safe-left));
+  }
+  .panel {
+    padding: 16px 18px 14px;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .eyebrow {
+    font-size: 7.5px;
+    letter-spacing: 1px;
+  }
+  h1 {
+    font-size: 22px;
+    letter-spacing: 2px;
+    margin: 8px 0 10px;
+  }
+  .tagline {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  /* List view for car option cards on narrow mobile screens */
+  #car-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .car-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    min-height: 38px;
+    border-radius: 4px;
+  }
+  .car-option strong {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .car-option small {
+    margin-top: 0;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  .car-option .spec {
+    display: none;
+  }
+
+  /* Simplified menu controls and buttons */
+  .primary {
+    padding: 11px 16px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  .secondary {
+    padding: 9px 14px;
+    font-size: 11px;
+    margin-top: 6px;
+  }
+  #load-status {
+    font-size: 10px;
+    margin: 8px 0;
+    min-height: 14px;
+  }
+  .menu-help {
+    font-size: 9px;
+    line-height: 1.3;
+    margin-top: 8px;
+  }
+  .menu-controls {
+    display: none;
+  }
+  .compact h2 {
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  .compact p {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  .compact dl {
+    margin: 10px 0 14px;
+  }
+  .compact dl div {
+    margin: 8px 0;
+    font-size: 11px;
+  }
+
+  /* Compact HUD typography and dimensions */
+  .brand {
+    width: 120px;
+    padding: 5px 8px;
+  }
+  .brand strong {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .brand small {
+    font-size: 6px;
+    margin-top: 2px;
+  }
+
+  .timing {
+    width: 135px;
+    padding: 5px 8px;
+    gap: 2px;
+  }
+  .timing small {
+    font-size: 7px;
+  }
+  .timing b {
+    font-size: 11px;
+  }
+  .timing .best b {
+    font-size: 9.5px;
+  }
+
+  .speed {
+    width: 135px;
+    padding: 5px 8px;
+    top: calc(max(10px, var(--safe-top)) + 54px);
+  }
+  .speed-head {
+    font-size: 8px;
+  }
+  .speed-head b {
+    font-size: 13px;
+  }
+  .speed-value strong {
+    font-size: 24px;
+  }
+  .speed-value small {
+    font-size: 7px;
+  }
+
+  #toolbar {
+    left: max(10px, var(--safe-left));
+    gap: 3px;
+    top: calc(max(10px, var(--safe-top)) + 38px);
+  }
+  #toolbar button {
+    width: 28px;
+    height: 24px;
+    font-size: 6.5px;
+  }
+  #toolbar button:first-child, #fullscreen-button {
+    font-size: 13px;
+  }
+
+  #touch-controls button {
+    width: 52px;
+    height: 52px;
+    font-size: 12px;
+  }
+  #touch-controls .touch-small {
+    width: 44px;
+    height: 40px;
+    font-size: 8px;
+  }
+  #touch-controls .gas {
+    height: 64px;
+  }
+
+  #notice {
+    font-size: 9px;
+    padding: 4px 10px;
+    max-width: 85%;
+  }
+}
+
+/* 3. Touch-friendly media queries:
+   - Ensure #touch-controls don't overlap important UI elements
+   - Add bottom padding for safe areas on iOS devices
+   - Map placed above left controls, speed & timing stacked in top-right */
+@media (pointer: coarse) {
+  #touch-controls {
+    display: flex;
+    position: fixed;
+    bottom: max(12px, var(--safe-bottom));
+    left: max(12px, var(--safe-left));
+    right: max(12px, var(--safe-right));
+    padding-bottom: var(--safe-bottom);
+    justify-content: space-between;
+    gap: 10px;
+    z-index: 4;
+    pointer-events: none;
+  }
+  #touch-controls > div {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  #touch-controls button {
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    background: #142a36c9;
+    border: 1px solid #7ac7be66;
+    color: var(--ice);
+    width: 58px;
+    height: 58px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  #touch-controls button:active, #touch-controls button.active {
+    background: #4e928c;
+    border-color: var(--teal);
+  }
+  #touch-controls .touch-small {
+    font-size: 9px;
+    width: 48px;
+    height: 44px;
+  }
+  #touch-controls .gas {
+    height: 72px;
+    background: #2a746fdb;
+  }
+
+  /* Map is positioned above left touch controls to ensure no overlap */
+  .map {
+    bottom: calc(max(12px, var(--safe-bottom)) + 70px);
+    left: max(12px, var(--safe-left));
+    width: 135px;
+    height: 98px;
+    padding: 6px 8px;
+  }
+  .map canvas {
+    width: 118px;
+    height: 64px;
+  }
+  .map small, .map span {
+    font-size: 7.5px;
+  }
+
+  /* Timing and Speed are stacked in top right, ensuring no touch control overlap */
+  .timing {
+    top: max(10px, var(--safe-top));
+    right: max(12px, var(--safe-right));
+    width: 150px;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .timing > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing small {
+    display: inline-block;
+    margin-bottom: 0;
+    font-size: 7.5px;
+  }
+  .timing b {
+    font-size: 12px;
+  }
+  .timing .best {
+    margin-top: 2px;
+    padding-top: 2px;
+    border-top: 1px solid rgba(128, 232, 216, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing .best b {
+    font-size: 10.5px;
+  }
+
+  .speed {
+    top: calc(max(10px, var(--safe-top)) + 62px);
+    right: max(12px, var(--safe-right));
+    bottom: auto;
+    width: 150px;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .speed-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8.5px;
+  }
+  .speed-head b {
+    font-size: 15px;
+  }
+  .speed-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .speed-value strong {
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+  .speed-value small {
+    font-size: 8px;
+  }
+  .rpm {
+    display: none;
+  }
+  .boost {
+    margin: 3px 0 0;
+    height: 3px;
+  }
+
+  .brand {
+    top: max(10px, var(--safe-top));
+    left: max(12px, var(--safe-left));
+    width: 135px;
+    padding: 6px 8px;
+  }
+  .brand strong {
+    font-size: 11px;
+  }
+  .brand small {
+    font-size: 6.5px;
+  }
+
+  #toolbar {
+    top: calc(max(10px, var(--safe-top)) + 42px);
+    left: max(12px, var(--safe-left));
+    gap: 4px;
+  }
+  #toolbar button {
+    width: 30px;
+    height: 26px;
+    font-size: 7px;
+  }
+  #toolbar button:first-child, #fullscreen-button {
+    font-size: 15px;
+  }
+
+  #notice {
+    top: calc(max(10px, var(--safe-top)) + 38px);
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+  #offroad {
+    bottom: calc(max(12px, var(--safe-bottom)) + 74px);
+    font-size: 10.5px;
+  }
+  #countdown {
+    font-size: 50px;
+    padding: 6px 18px;
+  }
+}
+
+/* 4. Landscape mobile layout optimization (height <= 540px):
+   - Menu fits comfortably on phone screens
+   - Full 4-corner layout prevents any UI overlap
+   - Bottom padding and insets for iOS safe areas */
+@media (max-height: 540px) {
+  #hud {
+    padding: 8px;
+    padding-top: max(8px, var(--safe-top));
+    padding-right: max(10px, var(--safe-right));
+    padding-bottom: max(8px, var(--safe-bottom));
+    padding-left: max(10px, var(--safe-left));
+  }
+  #overlay {
+    padding: max(6px, var(--safe-top)) max(10px, var(--safe-right)) max(6px, var(--safe-bottom)) max(10px, var(--safe-left));
+  }
+  .panel {
+    padding: 10px 16px 8px;
+    max-width: 560px;
+    max-height: calc(100vh - 12px);
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.8px;
+  }
+  h1 {
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    margin: 3px 0 5px;
+  }
+  .tagline {
+    font-size: 9px;
+    margin-bottom: 6px;
+  }
+
+  /* Compact 3-column car options in landscape to minimize vertical height */
+  #car-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .car-option {
+    display: block;
+    padding: 5px 8px;
+    min-height: 38px;
+    text-align: left;
+  }
+  .car-option strong {
+    font-size: 9.5px;
+  }
+  .car-option small {
+    margin-top: 2px;
+    font-size: 7px;
+    display: block;
+  }
+  .car-option .spec {
+    display: none;
+  }
+
+  .primary {
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .secondary {
+    padding: 6px 10px;
+    font-size: 9.5px;
+    margin-top: 4px;
+  }
+  #load-status {
+    font-size: 8.5px;
+    margin: 4px 0;
+    min-height: 10px;
+  }
+  .menu-help {
+    display: none;
+  }
+  .menu-controls {
+    display: none;
+  }
+  .compact h2 {
+    font-size: 16px;
+    margin: 5px 0;
+  }
+  .compact p {
+    font-size: 9.5px;
+    margin-bottom: 6px;
+  }
+  .compact dl {
+    margin: 4px 0 6px;
+  }
+  .compact dl div {
+    margin: 3px 0;
+    font-size: 9.5px;
+  }
+
+  /* Top-left: Brand & Toolbar */
+  .brand {
+    top: max(6px, var(--safe-top));
+    left: max(10px, var(--safe-left));
+    width: 120px;
+    padding: 4px 8px;
+  }
+  .brand strong {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .brand small {
+    font-size: 6px;
+    margin-top: 1px;
+  }
+
+  #toolbar {
+    top: calc(max(6px, var(--safe-top)) + 34px);
+    left: max(10px, var(--safe-left));
+    gap: 3px;
+  }
+  #toolbar button {
+    width: 26px;
+    height: 22px;
+    font-size: 6.5px;
+  }
+  #toolbar button:first-child, #fullscreen-button {
+    font-size: 13px;
+  }
+
+  /* Top-right: Timing and Speed stacked vertically */
+  .timing {
+    top: max(6px, var(--safe-top));
+    right: max(10px, var(--safe-right));
+    width: 130px;
+    padding: 4px 8px;
+    gap: 2px;
+    display: flex;
+    flex-direction: column;
+  }
+  .timing > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing small {
+    display: inline-block;
+    margin-bottom: 0;
+    font-size: 6.5px;
+  }
+  .timing b {
+    font-size: 10.5px;
+  }
+  .timing .best {
+    margin-top: 1px;
+    padding-top: 1px;
+    border-top: 1px solid rgba(128, 232, 216, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timing .best b {
+    font-size: 9px;
+  }
+
+  .speed {
+    top: calc(max(6px, var(--safe-top)) + 46px);
+    right: max(10px, var(--safe-right));
+    bottom: auto;
+    width: 130px;
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .speed-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 7.5px;
+  }
+  .speed-head b {
+    font-size: 12px;
+  }
+  .speed-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .speed-value strong {
+    font-size: 22px;
+    letter-spacing: -1px;
+  }
+  .speed-value small {
+    font-size: 6.5px;
+  }
+  .rpm {
+    display: none;
+  }
+  .boost {
+    margin-top: 2px;
+    height: 3px;
+  }
+
+  /* Bottom-left: Minimap above touch controls */
+  .map {
+    bottom: calc(max(6px, var(--safe-bottom)) + 58px);
+    left: max(10px, var(--safe-left));
+    width: 115px;
+    height: 80px;
+    padding: 4px 6px;
+  }
+  .map canvas {
+    width: 103px;
+    height: 52px;
+  }
+  .map small, .map span {
+    font-size: 6.5px;
+  }
+
+  /* Bottom touch controls with safe area support */
+  #touch-controls {
+    bottom: max(6px, var(--safe-bottom));
+    left: max(10px, var(--safe-left));
+    right: max(10px, var(--safe-right));
+    padding-bottom: var(--safe-bottom);
+  }
+  #touch-controls button {
+    width: 48px;
+    height: 48px;
+    font-size: 10.5px;
+  }
+  #touch-controls .touch-small {
+    width: 38px;
+    height: 36px;
+    font-size: 7px;
+  }
+  #touch-controls .gas {
+    height: 56px;
+  }
+
+  #notice {
+    top: calc(max(6px, var(--safe-top)) + 32px);
+    font-size: 8.5px;
+    padding: 3px 8px;
+  }
+  #offroad {
+    bottom: calc(max(6px, var(--safe-bottom)) + 62px);
+    font-size: 9.5px;
+  }
+  #countdown {
+    font-size: 40px;
+    padding: 4px 14px;
+  }
+}
+
+/* 5. Device pixel ratio & High-DPI canvas rendering */
+@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
+  canvas.scene {
+    image-rendering: auto;
+  }
+  #minimap {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
